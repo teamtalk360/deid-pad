@@ -1,0 +1,776 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; media-src blob:; connect-src https://*.openai.azure.com https://api.openai.com http://127.0.0.1:* http://localhost:* http://*:5180 http://*:5181 https://*:5181 https://*.ts.net https://login.microsoftonline.com https://graph.microsoft.com; frame-src https://login.microsoftonline.com; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="DeID Pad">
+<meta name="theme-color" content="#14324f"><link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-180.png">
+<meta name="referrer" content="no-referrer"><title>DeID Pad</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font:14px system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f6f8;color:#1b2430;height:100vh;display:flex;flex-direction:column}
+header{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#14324f;color:#fff;flex-wrap:wrap}
+header h1{font-size:15px;margin:0 12px 0 0}button{padding:6px 12px;border:0;border-radius:5px;background:#e8eef5;color:#14324f;cursor:pointer;font-weight:600}
+button:disabled{opacity:.45;cursor:default}button.p{background:#3fa7ff;color:#fff}button.rec{background:#d93636;color:#fff}button.ok{background:#1f9d55;color:#fff}
+label{font-size:12px;display:flex;gap:4px;align-items:center}
+.warn{background:#fff4d6;color:#6b4b00;font-size:12px;padding:4px 12px;border-bottom:1px solid #ecd58a}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:6px 12px;background:#e3ebf3;border-bottom:1px solid #c6d0da;font-size:12px}
+.bar input,.bar select{font-size:12px;padding:3px 5px;border:1px solid #b7c4d1;border-radius:4px}.bar .sep{width:1px;height:22px;background:#b7c4d1}
+main{flex:1;display:flex;gap:8px;padding:8px;min-height:0}section{flex:1;display:flex;flex-direction:column;min-width:0}
+section h2{font-size:12px;text-transform:uppercase;margin:0 0 4px;color:#4a5a6a;display:flex;gap:6px;align-items:center}
+section h2 button{font-size:11px;padding:2px 8px;min-height:0;text-transform:none}
+textarea{flex:1;width:100%;resize:none;font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;padding:10px;border:1px solid #c6d0da;border-radius:6px}
+#removed{width:280px;overflow:auto;background:#fff;border:1px solid #c6d0da;border-radius:6px;padding:8px;font-size:12px;display:none}
+#removed h3{font-size:12px;margin:8px 0 2px;color:#a33}#removed li{word-break:break-word}
+#names{width:220px;font-size:12px;padding:3px;border-radius:4px;border:0}#msg{font-size:12px;margin-left:auto;max-width:420px}
+#recind{display:none;align-items:center;gap:6px;font-weight:700;color:#ffb3b3;font-variant-numeric:tabular-nums}
+#recind.on{display:flex}#recind i{width:11px;height:11px;border-radius:50%;background:#ff4040;animation:pl 1s infinite}
+@keyframes pl{50%{opacity:.25}}#txstat{font-size:12px;color:#cfe3ff}
+#settings{position:fixed;inset:0;background:rgba(10,20,30,.45);display:none;z-index:9;overflow:auto}
+#settings.on{display:block}#settings .card{background:#fff;max-width:720px;margin:24px auto;border-radius:8px;padding:14px 18px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+#settings fieldset{border:1px solid #d3dbe4;border-radius:6px;margin:10px 0;padding:8px 12px}#settings legend{font-weight:700;font-size:13px}
+#settings .row{display:grid;grid-template-columns:190px 1fr;gap:4px 10px;align-items:center;margin:4px 0;font-size:12px}
+#settings input[type=text],#settings input[type=password],#settings input[type=number],#settings select,#settings textarea{width:100%;font-size:12px;padding:4px 6px;border:1px solid #b7c4d1;border-radius:4px}
+#settings textarea{min-height:52px;flex:none}.note{font-size:11px;color:#6b4b00;background:#fff4d6;padding:4px 8px;border-radius:4px;margin:4px 0}
+.hide{display:none!important}
+#guard{display:none;font-size:12px;border-radius:6px;padding:6px 8px;margin:0 0 4px;white-space:pre-wrap;max-height:30vh;overflow:auto}
+#guard.bad{display:block;background:#fde8e8;color:#8a1c1c;border:1px solid #f0b4b4}#guard.warn{display:block;background:#fff4d6;color:#6b4b00;border:1px solid #ecd58a}
+#guard button{margin-top:4px;font-size:11px;padding:2px 8px;min-height:0}
+.ctl{display:flex;gap:6px 10px;flex-wrap:wrap;align-items:center;font-size:12px;margin:0 0 4px}.ctl select,.ctl input[type=text]{font-size:12px;padding:3px 5px;border:1px solid #b7c4d1;border-radius:4px}
+#docid:invalid,#docid.need{outline:2px solid #ffb3b3}
+@media (max-width:760px){body{height:auto;min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+main{flex-direction:column}section{flex:none}textarea{min-height:38vh;font-size:16px}
+#removed{width:auto}#names{width:100%;font-size:16px}#msg{margin-left:0}
+header{padding-top:max(8px,env(safe-area-inset-top))}
+#copy,#clear,#rec,#stop{flex:1 1 40%;min-height:48px;font-size:17px}button{min-height:44px}
+.bar input,.bar select{font-size:16px}#settings .row{grid-template-columns:1fr}#settings input,#settings select{font-size:16px!important}.ctl select,.ctl input[type=text]{font-size:16px}#savenote,#gensoap{min-height:44px}}
+</style></head><body>
+<header><h1>DeID Pad</h1>
+<button class="rec" id="rec" title="Start ambient dictation">&#9679; Record</button><button id="stop" disabled>&#9632; Stop</button>
+<span id="recind"><i></i>REC <span id="elapsed">00:00</span></span><span id="txstat"></span><button id="retry" class="hide">Retry failed</button>
+<button class="p" id="copy">Copy output</button><button id="clear">Clear all</button><button id="tog">Show what was removed</button>
+<label><input type="checkbox" id="fac"> Remove facility names</label>
+<label><input type="checkbox" id="ai"> AI note</label>
+<label>Always remove: <input id="names" placeholder="comma-separated names (not saved)"></label>
+<button id="gear" title="Settings">&#9881; Settings</button><span id="msg" role="status"></span></header>
+<div class="warn">Rule-based, NOT a certified de-identification. Review the output before you share it. Nothing is stored on this device. Audio is sent only to the transcription backend you choose in Settings.</div>
+<div class="bar">
+ <label>MA label <input id="malabel" maxlength="24" size="10" placeholder="e.g. Rm 3 / HW" autocomplete="off"></label><button id="sendma">Send to MA</button>
+ <span class="sep"></span>
+ <label>Document ID* <input id="docid" size="12" maxlength="40" autocomplete="off" spellcheck="false" placeholder="required" title="Your own document/encounter reference (not the MRN). Used in the note header and filename."></label>
+ <span class="sep"></span>
+ <label>Patient name <input id="pname" size="18" autocomplete="off" spellcheck="false" placeholder="Last, First"></label>
+ <label>MRN <input id="pmrn" size="10" autocomplete="off" spellcheck="false"></label>
+ <span title="Name and MRN stay on this device. They are never shown in the output, sent to the MA queue or sent to AI. They go into a filename only if you tick 'Name/MRN in filename'.">&#9432;</span>
+ <button id="signin">Sign in to M365</button><button class="ok" id="complete">&#10003; Complete &rarr; OneDrive</button><span id="m365stat"></span>
+</div>
+<main><section><h2>Paste (raw clinical text) or dictate</h2><textarea id="in" spellcheck="false" autocomplete="off" placeholder="Paste note, labs, imaging, referral... or press Record"></textarea></section>
+<section><h2>De-identified output (editable)</h2><textarea id="out" spellcheck="false" autocomplete="off"></textarea></section>
+<section id="soapsec" class="hide"><h2>AI note (from de-identified text only) <button id="gensoap" class="p">Generate note</button><button id="copysoap">Copy</button></h2>
+ <div class="ctl"><label>Template <select id="tpl"><option value="soap">SOAP (Established patient)</option><option value="em">Vascular Follow-up / New Patient (E/M)</option></select></label>
+  <label title="Carry prior exam forward as stable unless changed; describe the progression you list; fresh wording."><input type="checkbox" id="progmode"> Progression mode</label>
+  <label>Progression in the following conditions <input type="text" id="prog" size="22" autocomplete="off" placeholder="e.g. right SFA occlusion (blank = stable)"></label></div>
+ <div class="ctl" title="Only ticked statements may appear in the note. Tick only what you actually did."><b>Attest:</b>
+  <label><input type="checkbox" data-att="externalRecords"> I reviewed external records</label><label><input type="checkbox" data-att="imaging"> I independently interpreted imaging</label>
+  <label><input type="checkbox" data-att="procedure"> Procedure discussed/consent</label><label><input type="checkbox" data-att="coordination"> Care coordination done</label></div>
+ <div id="guard" role="alert"></div>
+ <textarea id="soap" spellcheck="false" autocomplete="off" placeholder="Enter a Document ID, tick 'AI note', then Generate note (also runs after you press Stop). Only the de-identified pane is sent."></textarea>
+ <div class="ctl" style="margin-top:4px"><label>Send / Save to <select id="dest"><option value="share">iCloud Drive / Files (share sheet)</option><option value="sharetext">Share text (Notes / Shortcut)</option><option value="helper">Mac mini folder (save helper)</option><option value="onedrive">OneDrive / SharePoint</option><option value="download">Download file</option></select></label>
+  <label>as <select id="nfmt"><option value="md">.md</option><option value="txt">.txt</option><option value="docx">.docx</option></select></label>
+  <label><input type="checkbox" id="nhdr" checked> Document ID header</label>
+  <label title="Off by default. When on, the filename becomes Last_First_MRN_DocID_date."><input type="checkbox" id="incphi"> Name/MRN in filename</label>
+  <button class="ok" id="savenote">Send / Save</button></div></section>
+<aside id="removed"></aside></main>
+
+<div id="settings" role="dialog" aria-label="Settings"><div class="card">
+<h2 style="margin:0 0 6px;font-size:16px">Settings</h2>
+<div class="note">API keys and PINs are kept in memory only. They are cleared when you close the tab, unless you tick "Remember on this device" below.</div>
+<fieldset><legend>Transcription backend (Whisper)</legend>
+ <div class="row"><span>Backend</span><select data-k="backend"><option value="azure">Azure OpenAI Whisper (Microsoft BAA)</option><option value="openai">OpenAI API: requires OpenAI BAA + zero retention</option><option value="local">Local whisper.cpp server on this Mac</option></select></div>
+ <div class="row"><span>Chunk length (seconds)</span><input type="number" min="10" max="60" step="1" data-k="chunkSec"></div>
+ <div class="row"><span>Language</span><input type="text" data-k="language" placeholder="en"></div>
+ <div class="row"><span>Vocabulary hint (prompt)</span><textarea data-k="vocab"></textarea></div>
+ <div data-b="azure"><div class="row"><span>Endpoint</span><input type="text" data-k="azure.endpoint" placeholder="https://YOUR-RESOURCE.openai.azure.com"></div>
+  <div class="row"><span>Whisper deployment name</span><input type="text" data-k="azure.deployment" placeholder="whisper"></div>
+  <div class="row"><span>api-version</span><input type="text" data-k="azure.apiVersion" placeholder="2024-06-01"></div>
+  <div class="row"><span>API key</span><input type="password" data-k="azure.key" autocomplete="off"></div></div>
+ <div data-b="openai"><div class="note">Use this only if your organization has a signed BAA with OpenAI and zero data retention is enabled for the API key's project.</div>
+  <div class="row"><span>Model</span><select data-k="openai.model"><option>whisper-1</option><option>gpt-4o-transcribe</option><option>gpt-4o-mini-transcribe</option></select></div>
+  <div class="row"><span>API key</span><input type="password" data-k="openai.key" autocomplete="off"></div></div>
+ <div data-b="local"><div class="row"><span>whisper.cpp server URL</span><input type="text" data-k="local.url" placeholder="http://127.0.0.1:8080/inference"></div>
+  <div class="row"><span>Convert to 16 kHz WAV in browser</span><label><input type="checkbox" data-k="local.wav"> recommended (whisper-server reads WAV without ffmpeg)</label></div></div>
+ <button id="testtx">Test connection (1 s of silence)</button> <span id="testres" style="font-size:12px"></span>
+</fieldset>
+<fieldset><legend>AI note (OpenAI / Azure OpenAI / OpenAI-compatible)</legend>
+ <div class="note">Only the de-identified output pane (plus the instructions, references and Progression field below) is sent, and only after the leak detector finds nothing identifying in it. Use an OpenAI API project with a signed BAA and zero data retention even for de-identified text. Requests use <code>store:false</code>.</div>
+ <div class="row"><span>Provider</span><select data-k="note.provider"><option value="openai">OpenAI API (uses the OpenAI key)</option><option value="azure">Azure OpenAI (endpoint + key above)</option><option value="compat">OpenAI-compatible server</option></select></div>
+ <div data-np="openai"><div class="row"><span>OpenAI API key</span><input type="password" data-k="openai.key" autocomplete="off"></div>
+  <div class="row"><span>API</span><select data-k="note.api"><option value="responses">Responses (/v1/responses)</option><option value="chat">Chat Completions</option></select></div>
+  <div class="row"><span>Model</span><input type="text" data-k="note.model" list="models" placeholder="gpt-6.1-sol"><datalist id="models"><option value="gpt-6.1-sol"><option value="gpt-6-astra"><option value="gpt-6-luna"><option value="gpt-4o"><option value="gpt-4.1"></datalist></div>
+  <div class="row"><span>Reasoning effort (optional)</span><select data-k="note.effort"><option value="">model default</option><option>low</option><option>medium</option><option>high</option></select></div></div>
+ <div data-np="azure"><div class="row"><span>Azure chat deployment</span><input type="text" data-k="azure.chatDeployment" placeholder="gpt-4o"></div>
+  <div class="row"><span>Azure chat api-version</span><input type="text" data-k="azure.chatApiVersion" placeholder="2024-10-21"></div></div>
+ <div data-np="compat"><div class="row"><span>Base URL</span><input type="text" data-k="compat.url" placeholder="http://127.0.0.1:11434/v1 or https://mac-mini.tailnet.ts.net/v1"></div>
+  <div class="row"><span>Model</span><input type="text" data-k="compat.model" placeholder="llama3.1:8b"></div>
+  <div class="row"><span>API key (optional)</span><input type="password" data-k="compat.key" autocomplete="off"></div></div>
+ <div class="row"><span>Project instructions<br><small id="instrfor"></small></span><textarea id="instr" style="min-height:180px" spellcheck="false"></textarea></div>
+ <div class="row"><span></span><span><button id="instrreset" type="button">Reset to template default</button></span></div>
+ <div class="row"><span>Reference snippets (optional; separate with a line of ---)</span><textarea id="refs" style="min-height:70px" spellcheck="false" placeholder="Templates or style examples. No patient information."></textarea></div>
+ <div class="row"><span></span><label><input type="checkbox" id="rememberInstr"> Remember project instructions and references on this device</label></div>
+ <div class="note">The ChatGPT app's "Project" cannot be called from the API. Paste your project instructions here instead. The fixed privacy and compliance rules are always added after them.</div>
+</fieldset>
+<fieldset><legend>Save helper on the Mac mini (save-helper.js)</legend>
+ <div class="row"><span>Helper URL</span><input type="text" data-k="helper.url" placeholder="http://192.168.1.20:5181 or https://mac-mini.tailnet.ts.net"></div>
+ <div class="row"><span>Helper PIN</span><input type="password" data-k="helper.pin" autocomplete="off" inputmode="numeric"></div>
+ <button id="testhelper" type="button">Test helper</button> <span id="helperres" style="font-size:12px"></span>
+</fieldset>
+<fieldset><legend>Share to MA (office LAN)</legend>
+ <div class="row"><span>Share server URL</span><input type="text" data-k="share.url" placeholder="http://192.168.1.20:5180"></div>
+ <div class="row"><span>Shared PIN</span><input type="password" data-k="share.pin" autocomplete="off"></div>
+</fieldset>
+<fieldset><legend>Export to OneDrive / SharePoint (Microsoft Graph)</legend>
+ <div class="row"><span>Entra app (client) ID</span><input type="text" data-k="m365.clientId" placeholder="00000000-0000-0000-0000-000000000000"></div>
+ <div class="row"><span>Tenant ID</span><input type="text" data-k="m365.tenantId" placeholder="your tenant GUID or contoso.onmicrosoft.com"></div>
+ <div class="row"><span>Folder path</span><input type="text" data-k="m365.folder" placeholder="Clinical Notes/DeID Pad"></div>
+ <div class="row"><span>SharePoint drive ID (optional)</span><input type="text" data-k="m365.driveId" placeholder="blank = my OneDrive"></div>
+ <div class="row"><span>File format</span><select data-k="m365.format"><option value="docx">.docx</option><option value="md">.md</option><option value="txt">.txt</option></select></div>
+ <div class="row"><span>Redirect URI to register</span><code id="redir" style="font-size:11px;word-break:break-all"></code></div>
+</fieldset>
+<fieldset><legend>Device</legend>
+ <label><input type="checkbox" id="remember"> Remember settings (including API keys and PIN) on this device</label>
+ <div class="note">Warning: this saves keys in plain text in this browser's localStorage. Anyone who can use this browser profile can read them. Don't use it on shared workstations. Pasted text, transcripts and audio are never saved.</div>
+</fieldset>
+<button class="p" id="closeset">Done</button>
+</div></div>
+<script>
+/*ENGINE-START*/
+var DeID=(function(){
+const MON='(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\.?';
+const DATE_RES=[
+ new RegExp('\\b'+MON+'\\s+\\d{1,2}(?:st|nd|rd|th)?,?\\s+\\d{4}\\b','gi'),
+ new RegExp('\\b\\d{1,2}(?:st|nd|rd|th)?\\s+'+MON+',?\\s+\\d{4}\\b','gi'),
+ new RegExp('\\b'+MON+'\\s+\\d{4}\\b','gi'),
+ new RegExp('\\b'+MON+'\\s+\\d{1,2}(?:st|nd|rd|th)?\\b','g'),
+ /\b\d{4}-\d{1,2}-\d{1,2}\b/g,
+ /\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/g,
+ /\b\d{1,2}\/\d{1,2}\b(?!\s*(?:mm|mg|cm|%))/g,
+ /\b\d{1,2}\/\d{4}\b/g,
+ /\b(?:19|20)\d{2}\b(?=\s*(?:\)|,|\.|;|$|\n))/gm
+];
+const TITLES='(?:Dr|Mr|Mrs|Ms|Miss|Mx|Prof)\\.?';
+const NM="[A-Z][a-zA-Z'\\-]+";
+function parseDate(s){
+ let m=s.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+ if(m){let y=+m[3];if(y<100)y+=y>30?1900:2000;return new Date(y,m[1]-1,+m[2]);}
+ m=s.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return new Date(+m[1],m[2]-1,+m[3]);
+ const d=new Date(s.replace(/(st|nd|rd|th)/,''));return isNaN(d)?null:d;
+}
+function ageAt(dob,ref){let a=ref.getFullYear()-dob.getFullYear();const md=ref.getMonth()-dob.getMonth();if(md<0||(md===0&&ref.getDate()<dob.getDate()))a--;return a;}
+function esc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+const HEAD={
+ 'Chief Complaint':/^(?:chief complaint|cc)$/i,
+ 'HPI':/^(?:hpi|history of present(?:ing)? illness|reason for (?:referral|visit|consult)|subjective)$/i,
+ 'PMH':/^(?:pmh|past medical history|medical history|psh|past surgical history|surgical history|pmh\/psh|social history|family history|sh|fh)$/i,
+ 'Medications':/^(?:meds|medications|current medications|home medications|medication list)$/i,
+ 'Allergies':/^(?:allergies|allergy|nkda)$/i,
+ 'Exam':/^(?:exam|physical exam(?:ination)?|pe|vitals|vital signs|ros|review of systems|objective)$/i,
+ 'Imaging':/^(?:imaging|radiology|ultrasound|us|duplex|cta|ct|mri|abi|vascular studies|studies|impression|findings)$/i,
+ 'Labs':/^(?:labs|laboratory|lab results|laboratory data|bmp|cbc)$/i,
+ 'Assessment/Plan':/^(?:assessment(?:\s*(?:and|&|\/)\s*plan)?|a\/p|a&p|plan|impression\/plan|recommendations?)$/i
+};
+const BULLET=new Set(['Medications','Labs','Allergies']);
+const BOILER=/^(?:this (?:note|message|e-?mail).*(?:confidential|intended)|confidentiality notice|electronically signed|signed by|dictated|transcribed|cc:|page \d+|printed on|disclaimer)/i;
+
+// Patient identity for the OneDrive filename/header ONLY. Extracted from the raw text before redaction;
+// the caller keeps it in memory and must never put it in the de-identified output, share queue or logs.
+function extractPatient(t){const NMX="[A-Z][a-zA-Z'\\-]+";let name='',mrn='';
+ let m=t.match(new RegExp('^[ \\t]*(?:Patient(?:\\s+Name)?|Pt(?:\\s+Name)?|Name)[ \\t]*:[ \\t]*((?:'+NMX+'|[A-Z]\\.)(?:[ \\t,]+(?:'+NMX+'|[A-Z]\\.)){1,3})','im'));
+ // cue words are case-insensitive, the name itself must be Capitalized (avoids "the patient returns for ..." -> name "returns for")
+ if(!m)m=t.match(new RegExp('\\b(?:[Pp]atient|PATIENT|[Pp]t|PT)(?:\'s)?\\s+(?:[Nn]ame\\s+)?(?:[Ii]s\\s+)?((?:Mr|Mrs|Ms)\\.?\\s+)?('+NMX+'(?:\\s+[A-Z]\\.)?\\s+'+NMX+')'));
+ if(m&&/^(?:The|This|His|Her|He|She|Left|Right|Bilateral|Returns|Reports|Presents|Denies|States|Is|Was|Has|Had)$/.test((m[2]||'').split(/\s+/)[0]))m=null;
+ if(m)name=(m[2]&&m.length>2?m[2]:m[1]).replace(/[ \t]+/g,' ').replace(/[,\s]+$/,'').trim();
+ const mm=t.match(/\b(?:MRN|MR#|Medical Record(?: Number| No\.?| #)?)\s*(?:#|No\.?|Number|is)?\s*[:#]?\s*([A-Z0-9][A-Z0-9\-]{3,})/i);
+ if(mm&&/\d/.test(mm[1]))mrn=mm[1];return {name,mrn};}
+function run(text,opt){
+ opt=opt||{};const found={};let t=String(text||'').replace(/\r\n?/g,'\n');const patient=extractPatient(t);
+ const pn=[patient.name,opt&&opt.patientName].filter(Boolean).map(n=>n.replace(/\b[A-Z]\.?(?=\s|$)/g,' ').replace(/\s+/g,' ').trim()).filter(n=>n.length>1);
+ const add=(c,v)=>{v=v.trim();if(!v)return;(found[c]=found[c]||new Set()).add(v);};
+ const rep=(re,tok,cat,fn)=>{t=t.replace(re,function(){const a=arguments;const m=a[0];if(fn)return fn.apply(null,a);add(cat,m);return tok;});};
+ // demographics
+ let dob=null,sex=null,age=null,refDate=null;
+ const dm=t.match(/\b(?:DOB|D\.O\.B\.?|Date of Birth|Birth ?date)\s*[:#]?\s*([0-9A-Za-z,\/\-. ]{6,20}?\d{2,4})\b/i);
+ if(dm)dob=parseDate(dm[1]);
+ const vm=t.match(/\b(?:Date of (?:Service|Visit|Exam|Consult)|DOS|Visit Date|Exam Date|Date)\s*[:#]?\s*([0-9A-Za-z,\/\-. ]{6,20}?\d{2,4})\b/i);
+ if(vm)refDate=parseDate(vm[1]);
+ if(!refDate)refDate=opt.refDate?new Date(opt.refDate):new Date();
+ if(dob&&!isNaN(dob))age=ageAt(dob,refDate);
+ const am=t.match(/\b(\d{1,3})\s*(?:-|\s)?(?:year|yr|y)s?[\s\-]*old\b|\bAge\s*[:#]?\s*(\d{1,3})\b|\b(\d{1,3})\s*(?:yo|y\/o|y\.o\.)\b/i);
+ if(age==null&&am)age=+(am[1]||am[2]||am[3]);
+ const sm=t.match(/\b(?:Sex|Gender)\s*[:#]?\s*(M|F|Male|Female)\b/i)||t.match(/\b\d{1,3}\s*(?:yo|y\/o|-?year-old|year old)\s*(M|F|male|female|man|woman)\b/i);
+ if(sm){const s=sm[1].toLowerCase();sex=(s[0]==='m')?'male':(s==='woman'||s[0]==='f')?'female':null;}
+ if(!sex){if(/\b(?:he|his|him)\b/i.test(t)&&!/\b(?:she|her)\b/i.test(t))sex='male';else if(/\b(?:she|her)\b/i.test(t)&&!/\b(?:he|his|him)\b/i.test(t))sex='female';}
+ const ageStr=age==null?null:(age>89?'90+':String(age));
+ // drop sex/gender header fields
+ t=t.replace(/^[ \t]*(?:Sex|Gender)\s*[:#]\s*\w+[ \t]*$/gim,'');
+ t=t.replace(/[ \t]*\b(?:Sex|Gender)\s*:\s*(?:M|F|Male|Female)\b[,;]?/gi,'');
+ // user list
+ (opt.alwaysRemove||[]).concat(pn).filter(Boolean).forEach(n=>{n=n.trim();if(n.length<2)return;
+  n.split(/[\s,]+/).concat([n]).filter(p=>p.length>1).sort((a,b)=>b.length-a.length).forEach(p=>rep(new RegExp('\\b'+esc(p)+'\\b','gi'),'[NAME]','Names'));});
+ // contacts & ids
+ rep(/\b[\w.+\-]+@[\w\-]+(?:\.[\w\-]+)+\b/g,'[EMAIL]','Emails');
+ rep(/\b(?:https?:\/\/|www\.)\S+/gi,'[URL]','URLs');
+ rep(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g,'[IP]','IP addresses');
+ rep(/\b\d{3}-\d{2}-\d{4}\b/g,'[ID]','SSN / IDs');
+ rep(/(?:\+?1[\s.\-]?)?(?:\(\d{3}\)\s*|\b\d{3}[\s.\-])\d{3}[\s.\-]\d{4}\b(?:\s*(?:x|ext\.?)\s*\d+)?/gi,'[PHONE]','Phone/Fax');
+ rep(/\b((?:MRN|MR#|Med(?:ical)? Rec(?:ord)?(?: No\.?| Number| #)?|Acct|Account|Acct #|Account (?:No\.?|Number|#)|FIN|CSN|Encounter|Visit #|SSN|Social Security(?: No\.?| Number)?|Member ID|Subscriber ID|Policy(?: No\.?| Number| #)?|Group(?: No\.?| Number| #)?|Insurance ID|ID|NPI|DEA|License(?: No\.?)?|Plate|VIN|Device (?:Serial|ID)|Serial(?: No\.?)?|Health Plan ID|Medicare ID|Medicaid ID)\s*(?:#|No\.?|Number)?\s*[:#]?\s*)([A-Z0-9][A-Z0-9\-]{3,})/gi,null,null,(m,p,id)=>{if(!/\d/.test(id))return m;add('SSN / IDs',id);return p+'[ID]';});
+ rep(/\b(?=[A-Z]*\d)(?=\d*[A-Z])[A-Z0-9]{2,4}\d{5,}\b/g,'[ID]','SSN / IDs');
+ rep(/\b\d{7,}\b/g,'[ID]','SSN / IDs');
+ // addresses
+ rep(/\b\d{1,6}\s+(?:[NSEW]\.?\s+)?(?:[A-Z][a-zA-Z0-9]*\s+){1,4}(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Drive|Dr|Lane|Ln|Court|Ct|Way|Place|Pl|Pike|Highway|Hwy|Parkway|Pkwy|Circle|Cir|Terrace|Ter|Trail)\b\.?(?:,?\s*(?:Apt|Suite|Ste|Unit|#)\.?\s*[\w\-]+)?/g,'[ADDRESS]','Addresses');
+ rep(/\b(?:P\.?O\.?\s*Box)\s*\d+/gi,'[ADDRESS]','Addresses');
+ rep(/\b(?:[A-Z][a-z]+\s){0,2}[A-Z][a-z]+,\s*(?:[A-Z]{2}|Delaware|Maryland|Pennsylvania|New Jersey)\s+\d{5}(?:-\d{4})?\b/g,'[ADDRESS]','Addresses');
+ rep(/\b(?:DE|MD|PA|NJ|NY|VA|[A-Z]{2})\s+\d{5}(?:-\d{4})?\b/g,'[ADDRESS]','Addresses');
+ rep(/\b(?:[A-Z][a-z]+\s){0,2}[A-Z][a-z]+,\s*(?:DE|NJ|Delaware|Maryland|Pennsylvania|New Jersey)\b/g,'[ADDRESS]','Addresses');
+ rep(/^([ \t]*(?:Address|Addr|Home Address|City|Street|Zip|ZIP Code)\s*:\s*)(.+)$/gim,null,null,(m,p,v)=>{if(/^\[ADDRESS\]\W*$/.test(v.trim()))return p+'[ADDRESS]';add('Addresses',v);return p+'[ADDRESS]';});
+ // facilities
+ if(opt.facilities){rep(/\b(?:[A-Z][A-Za-z.&'\-]+\s){1,5}(?:Hospital|Medical Center|Health(?:care)? System|Health|Clinic|Center|Associates|Specialists|Imaging|Radiology|Cardiology|Surgery|Surgical|Group|Practice|Labs?|Laboratory)(?:\s+of\s+[A-Z][a-z]+)?\b/g,'[FACILITY]','Facilities');}
+ // dates
+ DATE_RES.forEach(re=>rep(re,'[DATE]','Dates'));
+ // names
+ const nameTok=(m,p,n)=>{if(/^\[/.test(n))return m;add('Names',n);return p+'[NAME]';};
+ rep(new RegExp('\\b('+TITLES+'\\s+)('+NM+'(?:\\s+(?:[A-Z]\\.\\s+)?'+NM+'){0,2})(?:\\s*,\\s*(?:MD|DO|NP|PA-C|PA|RN|FACS|RPVI))*','g'),null,null,(m,p,n)=>{add('Names',n);return p+'[NAME]';});
+ rep(/^([ \t]*)([A-Z][a-z'\-]+),[ \t]*([A-Z][a-z'\-]+)(?:[ \t]+[A-Z]\.?)?(?=[ \t]*(?:$|\(|[ \t]+(?:DOB|MRN|Age)))/gm,null,null,(m,sp,a,b)=>{add('Names',a+', '+b);return sp+'[NAME]';});
+ rep(new RegExp('((?:Patient(?: Name)?|Pt(?: Name)?|Name|Referring(?: Physician| Provider| MD)?|Referred by|PCP|Primary Care(?: Physician| Provider)?|Attending|Surgeon|Provider|Physician|Emergency Contact|Contact|Guardian|Spouse|Daughter|Son|Wife|Husband|cc|From|To|Signed by|Electronically signed by|Dictated by)[ \\t]*:[ \\t]*(?:'+TITLES+'[ \\t]+)?)((?:\\[NAME\\]|'+NM+')(?:[ \\t,]+(?:\\[NAME\\]|'+NM+'|[A-Z]\\.))*(?:,\\s*(?:MD|DO|NP|PA-C|RN))?)','g'),null,null,(m,p,n)=>{if(/^\[NAME\]$/.test(n.trim()))return m;add('Names',n);return p+'[NAME]';});
+ rep(new RegExp('\\b((?:seen by|referred by|per|with|by|discussed with|patient|pt|son|daughter|wife|husband|spouse)\\s+)('+NM+'(?:\\s+'+NM+')+)','g'),null,null,(m,p,n)=>{if(/^(?:The|This|His|Her|He|She|Left|Right|Bilateral)\b/.test(n))return m;add('Names',n);return p+'[NAME]';});
+ rep(new RegExp('\\b('+NM+'(?:\\s+[A-Z]\\.)?\\s+'+NM+')(?=\\s*,\\s*(?:MD|DO|NP|PA-C|RN|FACS)\\b)','g'),'[NAME]','Names');
+ // propagate discovered names everywhere
+ const parts=new Set();(found.Names||[]).forEach(n=>n.replace(/\[NAME\]/g,'').split(/[\s,.]+/).forEach(w=>{if(w.length>2&&/^[A-Z]/.test(w)&&!/^(MD|DO|NP|RN|FACS|RPVI|The)$/.test(w))parts.add(w);}));
+ parts.forEach(w=>rep(new RegExp('\\b'+esc(w)+'\\b(?!\\])','g'),'[NAME]','Names'));
+ t=t.replace(/\[NAME\](?:[ \t,]+\[NAME\])+/g,'[NAME]');
+ // ages > 89
+ t=t.replace(/\b(\d{2,3})(\s*(?:-|\s)?(?:year|yr)s?[\s\-]*old)/gi,(m,a,r)=>+a>89?'90+'+r:m);
+ t=t.replace(/\b(Age\s*[:#]?\s*)(\d{2,3})\b/gi,(m,p,a)=>+a>89?p+'90+':m);
+ // formatting
+ const lines=t.split('\n');const out=[];let cur=null,buf=[];
+ const flush=()=>{const body=buf.join('\n').trim();buf=[];if(!body&&cur){cur=null;return;}if(cur)out.push('## '+cur);if(body){if(cur&&BULLET.has(cur))out.push(bulletize(body));else out.push(paras(body));}};
+ for(let raw of lines){let l=raw.replace(/[ \t]+/g,' ').trim();
+  if(BOILER.test(l))continue;
+  if(/^[\w #\/().'\-]{1,40}:\s*(?:\[\w+\]|n\/?a|none listed|--+|_+)?\s*$/i.test(l)&&!/^\s*$/.test(l)){const lab=l.split(':')[0].trim();const isHead=Object.keys(HEAD).find(k=>HEAD[k].test(lab));
+   if(isHead){flush();cur=isHead;continue;}
+   if(/:\s*(?:n\/?a|--+|_+)?\s*$/i.test(l)||/:\s*\[\w+\]\s*$/.test(l)){continue;}}
+  const hm=l.match(/^([A-Za-z &\/]{2,40}?)\s*[:\-]\s*(.*)$/);
+  if(hm){const k=Object.keys(HEAD).find(k=>HEAD[k].test(hm[1].trim()));if(k){flush();cur=k;if(hm[2])buf.push(hm[2]);continue;}}
+  const k2=Object.keys(HEAD).find(k=>HEAD[k].test(l.replace(/[:#*]/g,'').trim()));
+  if(k2&&l.length<45){flush();cur=k2;continue;}
+  const rest=l.replace(/\b[\w#]+(?: [\w#]+)?:?\s*\[[A-Z]+\]/g,'').replace(/[\s,;:.\-()]/g,'');
+  if(/\[[A-Z]+\]/.test(l)&&!rest)continue;
+  if(!cur&&!l)continue;buf.push(cur?l:'- '+l);}
+ flush();
+ let body=out.join('\n\n').replace(/\n{3,}/g,'\n\n').trim();
+ const demo='Demographics (non-identifying): age '+(ageStr||'unknown')+', sex '+(sex||'unknown');
+ Object.keys(found).forEach(k=>found[k]=[...found[k]]);
+ return {text:demo+'\n\n'+body,removed:found,age:ageStr,sex,patient:{name:patient.name,mrn:patient.mrn,date:refDate}};
+}
+function paras(b){const ls=b.split('\n').filter(x=>x.trim());const res=[];let p=[];
+ ls.forEach(l=>{if(/^[\-*•]\s|^\d+[.)]\s/.test(l)){if(p.length){res.push(p.join(' '));p=[];}res.push(l.replace(/^[*•]\s/,'- '));}else{p.push(l);if(/[.!?]$/.test(l)&&p.join(' ').length>220){res.push(p.join(' '));p=[];}}});
+ if(p.length)res.push(p.join(' '));return res.join('\n');}
+function bulletize(b){return b.split(/\n|;\s*|,\s+(?=[A-Z][a-z]*\s*\d|[A-Za-z]+\s+\d)/).map(x=>x.replace(/^[\-*•\d.)\s]+/,'').trim()).filter(Boolean).map(x=>'- '+x).join('\n');}
+// Leak detector for outgoing text (AI requests). Re-runs the same rules on text that should ALREADY be
+// de-identified and reports anything that would still be removed. Placeholder tokens are ignored.
+// Returns [{category, value}]; empty array = nothing detected.
+function detect(text,opt){opt=opt||{};const s=String(text||'');if(!s.trim())return [];
+ const r=run(s,{alwaysRemove:opt.alwaysRemove||[],patientName:opt.patientName||'',facilities:!!opt.facilities,refDate:opt.refDate});
+ const out=[];const seen=new Set();
+ Object.keys(r.removed).forEach(c=>r.removed[c].forEach(v=>{const clean=String(v).replace(/\[[A-Z]+\]/g,'').replace(/[\s,.;:()\-]+/g,' ').trim();
+  if(!clean)return;const k=c+'|'+v;if(seen.has(k))return;seen.add(k);out.push({category:c,value:v});}));
+ return out;}
+return {run,extractPatient,detect};
+})();
+if(typeof module!=='undefined')module.exports=DeID;
+/*ENGINE-END*/
+</script>
+<script>
+/*TX-START*/
+// DeIDTx: pure request builders for Whisper transcription, AI SOAP / AI Note (guarded), Share-to-MA, save helper and OneDrive.
+// No storage, no logging. Usable in the browser and in Node 18+ (tests).
+var DeIDTx=(function(){
+const AZ_HOST=/^https:\/\/[a-z0-9][a-z0-9\-]*\.openai\.azure\.com$/i;
+const OPENAI='https://api.openai.com/v1';
+const DEFAULT_VOCAB='Vascular surgery clinic dictation. Claudication, rest pain, ABI, TBI, PVR, duplex, CTA, SFA, popliteal, tibial, peroneal, AAA, EVAR, TEVAR, carotid endarterectomy, stenosis, occlusion, angioplasty, atherectomy, stent, femoral-popliteal bypass, cilostazol, clopidogrel, apixaban, rivaroxaban, atorvastatin.';
+const SOAP_SYSTEM='You are a clinical documentation assistant for a vascular surgeon. Rewrite the de-identified dictation/notes you are given into a concise SOAP note with the headings Subjective, Objective, Assessment, Plan. Rules: use only facts present in the input; never invent findings, doses or dates; keep placeholder tokens such as [NAME], [DATE], [ID], [ADDRESS] exactly as written and never try to fill them in; do not add any identifiers; write "not documented" for a missing section; use standard vascular abbreviations; plain text only, no markdown tables.';
+const NOTE_INSTRUCTIONS=['You are a medical documentation assistant. Generate a complete SOAP note from the input provided. Output only the note, with no explanations, prefaces, follow-up questions, or qualifying statements.',
+'','Begin with this header:','Established patient','* [vascular condition 1]','* [vascular condition 2]','* [vascular condition 3]','* etc.',
+'','Then the SOAP note, formatted exactly:','','**S:**','[Subjective content] expressed as multiple small paragraphs for easy readability.',
+'','**O:**','[Objective content] Express each system as a separate small paragraph, with triple spacing for readability.',
+'','**A:**','[Assessment content]','','**P:**','[Plan content]',
+'','Paragraphs are separated by triple spacing (two blank lines). In Assessment and Plan, separate statements with double spacing (one blank line). End after the Plan section. Do not include any other content. Identifiers in the input appear as tokens like [NAME], [DATE], [ID]; keep them as tokens and never invent identifiers.'].join('\n');
+// Always appended, even when the user edits the project instructions.
+const NOTE_GUARD='\n\nPrivacy rule (always applies): the input is de-identified. Keep placeholder tokens such as [NAME], [DATE], [ID], [PHONE], [ADDRESS] exactly as written. Never guess, fill in or invent names, dates of birth, record numbers, phone numbers or addresses. Use only facts present in the input.';
+const EM_INSTRUCTIONS=['You are a medical documentation assistant for a vascular surgeon. Write a vascular follow-up or new-patient (E/M) clinic note from the de-identified input. The input may contain: a prior note (redacted), a template with medications and vitals, test/imaging reports, and a brief statement of new symptoms or exam changes. Output only the note: no explanations, prefaces, questions or qualifying statements.',
+'','FORMAT: plain text for pasting into Cerner/Azalea. No markdown, no bold, no asterisks, no pound signs, no tables, no emoji or special symbols. Section headings in plain words followed by a colon. Use "- " for bullets and "1." numbering. One blank line between sections and between numbered items. Consistent spacing.',
+'','SECTIONS, in this order:',
+'1. Subject heading line (e.g. "Vascular Surgery Follow-up Visit" or "Vascular Surgery New Patient Visit", as appropriate to the input), then "Date of Visit: [DATE]", then "Document ID: [DOCID]" (write both tokens exactly like that).',
+'2. Subjective/History: narrative covering the vascular condition(s); symptoms and functional impact; new changes since the last visit; surgical/interventional history; medication adherence; tobacco and alcohol use; compression therapy use. Only what the input documents; write "not documented" for an item the input does not cover rather than guessing.',
+'3. Objective: vitals; general; extremity and neurovascular exam; wound/incision assessment.',
+'4. Diagnostic Imaging: "- " bullets grouped as Arterial, Venous, Carotid, Wound/soft tissue. Report only studies and results present in the input; omit a group that has none.',
+'5. Assessment: numbered, one item per condition, each with brief clinical reasoning drawn from the input. Include medication-relevant conditions (e.g. anticoagulation, antiplatelet, statin, diabetes, hypertension) when the input documents them.',
+'6. Plan and Recommendations: numbered per condition, matching the Assessment.',
+'7. Patient Education: lifestyle, warning signs, and when to call or return.',
+'8. Medical Decision Making: one paragraph describing the activities performed for this visit (face-to-face evaluation, pre-charting, charting, review of outside records/diagnostics) WITHOUT any times or minutes, limited to activities supported by the input and the confirmed attestations below.',
+'9. End with the line "Dictation addendum:" followed by nothing.'].join('\n');
+const TEMPLATES={soap:{label:'SOAP (Established patient)',instructions:NOTE_INSTRUCTIONS,plain:false},
+ em:{label:'Vascular Follow-up / New Patient (E/M)',instructions:EM_INSTRUCTIONS,plain:true}};
+const ATTEST={externalRecords:{label:'I reviewed external records',text:'External records were personally reviewed by the physician.'},
+ imaging:{label:'I independently interpreted imaging',text:'Imaging was independently interpreted by the physician.'},
+ procedure:{label:'Procedure discussed/consent',text:'Procedural options, risks, benefits and alternatives were discussed and consent was addressed.'},
+ coordination:{label:'Care coordination done',text:'Care coordination was performed.'}};
+// Non-editable compliance block, always appended after the (editable) project instructions.
+function complianceBlock(opt){opt=opt||{};const a=opt.attest||{};const on=Object.keys(ATTEST).filter(k=>a[k]);
+ const L=['','COMPLIANCE RULES (always apply; they override anything above):',
+ '- Never invent findings, exam elements, results, studies, diagnoses, medications, counseling or services that are not present in the input. Documentation must reflect services actually performed.',
+ '- Attestation statements: '+(on.length?'the physician has confirmed ONLY these; you may include them, worded as given: '+on.map(k=>'"'+ATTEST[k].text+'"').join(' ')+' Do not add any other attestation.':'the physician has confirmed none. Do NOT write any attestation such as "external records personally reviewed", "images directly/independently interpreted", "significant physician time", procedural counseling, consent discussion, or staff/care-coordination time.'),
+ '- Severity qualifiers (progressive, worsening, complicated, poorly controlled, uncontrolled, deteriorating, exacerbation) only when the input explicitly supports them'+(String(opt.progression||'').trim()?' or for these physician-listed conditions: '+String(opt.progression).trim():'')+'. Otherwise describe conditions as documented or stable.'];
+ if(opt.progressionMode||String(opt.progression||'').trim())L.push('- Progression mode: carry the prior exam forward as stable unless the input states a change; describe the progression the physician specified'+(String(opt.progression||'').trim()?' ('+String(opt.progression).trim()+')':'')+'; write fresh wording and do not copy sentences verbatim from the prior note; never add findings that are not in the input.');
+ L.push('- No times or minutes anywhere.');return L.join('\n');}
+function trimSlash(s){return String(s||'').trim().replace(/\/+$/,'');}
+function mimeExt(m){m=String(m||'').toLowerCase();
+ if(m.includes('mp4')||m.includes('m4a')||m.includes('aac'))return 'm4a';
+ if(m.includes('webm'))return 'webm';if(m.includes('ogg'))return 'ogg';
+ if(m.includes('wav'))return 'wav';if(m.includes('mpeg')||m.includes('mp3'))return 'mp3';return 'webm';}
+// iOS Safari only records audio/mp4; Chrome/Firefox prefer webm/opus. Whisper accepts both.
+function pickMime(isSupported){const c=['audio/webm;codecs=opus','audio/webm','audio/mp4;codecs=mp4a.40.2','audio/mp4','audio/ogg;codecs=opus'];
+ if(typeof isSupported!=='function')return '';for(const m of c){try{if(isSupported(m))return m;}catch(e){}}return '';}
+function validate(cfg){cfg=cfg||{};const b=cfg.backend;
+ if(b==='azure'){const a=cfg.azure||{};const ep=trimSlash(a.endpoint);
+  if(!ep)return 'Azure endpoint is empty';
+  if(!AZ_HOST.test(ep))return 'Azure endpoint must look like https://<resource>.openai.azure.com (other hosts are blocked by the page CSP)';
+  if(!a.deployment)return 'Azure Whisper deployment name is empty';if(!a.apiVersion)return 'Azure api-version is empty';if(!a.key)return 'Azure API key is empty';return '';}
+ if(b==='openai'){const o=cfg.openai||{};if(!o.key)return 'OpenAI API key is empty';return '';}
+ if(b==='local'){const u=String((cfg.local||{}).url||'');if(!/^http:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\//i.test(u))return 'Local URL must be http://127.0.0.1:<port>/... or http://localhost:<port>/...';return '';}
+ return 'Choose a transcription backend in Settings';}
+function buildTranscriptionRequest(cfg,blob,opt){opt=opt||{};const err=validate(cfg);if(err)throw new Error(err);
+ const FD=opt.FormData||FormData;const fd=new FD();const name=opt.filename||('chunk.'+mimeExt(blob&&blob.type));
+ fd.append('file',blob,name);const prompt=String(opt.prompt||'').slice(-800);const lang=cfg.language||'en';
+ let url,headers={};
+ if(cfg.backend==='azure'){const a=cfg.azure;
+  url=trimSlash(a.endpoint)+'/openai/deployments/'+encodeURIComponent(a.deployment.trim())+'/audio/transcriptions?api-version='+encodeURIComponent(a.apiVersion.trim());
+  headers['api-key']=a.key.trim();fd.append('response_format','json');if(lang)fd.append('language',lang);if(prompt)fd.append('prompt',prompt);fd.append('temperature','0');}
+ else if(cfg.backend==='openai'){const o=cfg.openai;url=OPENAI+'/audio/transcriptions';headers.Authorization='Bearer '+o.key.trim();
+  fd.append('model',o.model||'whisper-1');fd.append('response_format','json');if(lang)fd.append('language',lang);if(prompt)fd.append('prompt',prompt);fd.append('temperature','0');}
+ else{url=cfg.local.url.trim();fd.append('response_format','json');fd.append('temperature','0.0');if(lang)fd.append('language',lang);if(prompt)fd.append('prompt',prompt);}
+ return {url,init:{method:'POST',headers,body:fd,signal:opt.signal,cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'}};}
+async function readErr(res){let t='';try{t=await res.text();}catch(e){}
+ try{const j=JSON.parse(t);t=(j.error&&(j.error.message||j.error))||j.message||t;}catch(e){}return 'HTTP '+res.status+(t?': '+String(t).slice(0,200):'');}
+function parseTranscription(body){if(body==null)return '';if(typeof body==='string'){try{body=JSON.parse(body);}catch(e){return body.replace(/\[(?:BLANK_AUDIO|MUSIC|NOISE|SOUND|SILENCE|INAUDIBLE)\]/gi,' ').replace(/\s+/g,' ').trim();}}
+ const clean=x=>String(x).replace(/\[(?:BLANK_AUDIO|MUSIC|NOISE|SOUND|SILENCE|INAUDIBLE)\]/gi,' ').replace(/\s+/g,' ').trim();
+ if(typeof body.text==='string')return clean(body.text);
+ if(Array.isArray(body.segments))return clean(body.segments.map(s=>s.text||'').join(' '));return '';}
+async function transcribe(cfg,blob,opt,fetchImpl){const r=buildTranscriptionRequest(cfg,blob,opt);const f=fetchImpl||fetch;
+ const res=await f(r.url,r.init);if(!res.ok)throw new Error(await readErr(res));return parseTranscription(await res.text());}
+// Known Whisper hallucinations on silence; drop chunks that are only this.
+function isNoise(t){const s=String(t||'').toLowerCase().replace(/[^a-z ]+/g,' ').replace(/\s+/g,' ').trim();
+ return !s||/^(?:thank you|thanks for watching|thank you for watching|you|bye|blank audio|music|silence|subtitles by.*)$/.test(s);}
+function chatTarget(cfg){const p=cfg.chatProvider||(cfg.backend==='openai'?'openai':'azure');
+ if(p==='azure'){const a=cfg.azure||{};const ep=trimSlash(a.endpoint);if(!AZ_HOST.test(ep))throw new Error('Azure endpoint is not set or not *.openai.azure.com');
+  if(!a.chatDeployment)throw new Error('Azure chat deployment name is empty');if(!a.key)throw new Error('Azure API key is empty');
+  return {url:ep+'/openai/deployments/'+encodeURIComponent(a.chatDeployment.trim())+'/chat/completions?api-version='+encodeURIComponent((a.chatApiVersion||a.apiVersion||'').trim()),headers:{'api-key':a.key.trim(),'Content-Type':'application/json'},model:null};}
+ const o=cfg.openai||{};if(!o.key)throw new Error('OpenAI API key is empty');
+ return {url:OPENAI+'/chat/completions',headers:{Authorization:'Bearer '+o.key.trim(),'Content-Type':'application/json'},model:o.chatModel||'gpt-4o'};}
+// deidText MUST be the de-identified output pane, never raw input.
+function buildChatRequest(cfg,deidText,opt){opt=opt||{};const t=chatTarget(cfg);const body={messages:[{role:'system',content:SOAP_SYSTEM},{role:'user',content:String(deidText||'')}],temperature:0.2,max_tokens:1200};
+ if(t.model)body.model=t.model;return {url:t.url,init:{method:'POST',headers:t.headers,body:JSON.stringify(body),signal:opt.signal,cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'}};}
+async function formatSoap(cfg,deidText,opt,fetchImpl){const r=buildChatRequest(cfg,deidText,opt);const f=fetchImpl||fetch;const res=await f(r.url,r.init);
+ if(!res.ok)throw new Error(await readErr(res));const j=await res.json();return String((((j.choices||[])[0]||{}).message||{}).content||'').trim();}
+// Share-to-MA: only private-LAN / loopback IPv4 literals (or localhost) are allowed.
+function isPrivateHost(h){h=String(h||'').toLowerCase();if(h==='localhost')return true;const m=h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);if(!m)return false;
+ const a=m.slice(1).map(Number);if(a.some(x=>x>255))return false;
+ return a[0]===10||a[0]===127||(a[0]===172&&a[1]>=16&&a[1]<=31)||(a[0]===192&&a[1]===168);}
+function buildShareRequest(share,text,label){share=share||{};let u;try{u=new URL(String(share.url||'').trim());}catch(e){throw new Error('Share server URL is invalid');}
+ if(u.protocol!=='http:'||!isPrivateHost(u.hostname))throw new Error('Share server must be http://<private LAN IP>:5180 (10.x, 172.16-31.x, 192.168.x, 127.x)');
+ if(!share.pin)throw new Error('Share PIN is empty');if(!String(text||'').trim())throw new Error('Nothing to send');
+ return {url:u.origin+'/api/notes',init:{method:'POST',headers:{'Content-Type':'application/json','X-Share-PIN':String(share.pin)},body:JSON.stringify({label:String(label||'').slice(0,24),text:String(text)}),cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'}};}
+// 16-bit PCM mono WAV encoder (whisper.cpp server reads WAV without ffmpeg).
+function encodeWav(samples,rate){const n=samples.length,buf=new ArrayBuffer(44+n*2),v=new DataView(buf);const w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
+ w(0,'RIFF');v.setUint32(4,36+n*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+ v.setUint32(24,rate,true);v.setUint32(28,rate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*2,true);
+ for(let i=0;i<n;i++){const s=Math.max(-1,Math.min(1,samples[i]));v.setInt16(44+i*2,s<0?s*0x8000:s*0x7fff,true);}return buf;}
+
+// ---- Export to OneDrive/SharePoint (Microsoft Graph) ----
+function fnPart(s,max){return String(s||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9\-]+/g,'').slice(0,max||40);}
+function isoDate(d){if(typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d))return d;d=d instanceof Date?d:(d?new Date(d):new Date());if(isNaN(d))d=new Date();
+ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+// "Whitcombe, Harold J" | "Harold J. Whitcombe" -> {first:'Harold',last:'Whitcombe'}
+function splitName(n){n=String(n||'').replace(/\b(?:Mr|Mrs|Ms|Miss|Mx|Dr)\.?\s+/gi,'').replace(/,\s*(?:Jr|Sr|II|III|IV)\.?$/i,'').trim();if(!n)return {first:'',last:''};
+ if(n.includes(',')){const [l,r]=n.split(',');return {last:l.trim(),first:(r||'').trim().split(/\s+/)[0]||''};}
+ const p=n.split(/\s+/).filter(w=>!/^[A-Z]\.?$/.test(w));return p.length>1?{first:p[0],last:p[p.length-1]}:{first:'',last:p[0]||''};}
+function buildFilename(patient,date,ext){patient=patient||{};const nm=splitName(patient.name);
+ const last=fnPart(nm.last)||'Unknown',first=fnPart(nm.first)||'Unknown',mrn=fnPart(patient.mrn,24)||'NoMRN';
+ ext=String(ext||'docx').replace(/^\./,'').toLowerCase();if(!/^(docx|txt|md)$/.test(ext))ext='docx';
+ return last+'_'+first+'_'+mrn+'_'+isoDate(date)+'.'+ext;}
+const MIME={docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',txt:'text/plain; charset=utf-8',md:'text/markdown; charset=utf-8'};
+function graphScopes(g){return [(g&&g.driveId)?'Files.ReadWrite.All':'Files.ReadWrite'];}
+function buildGraphUpload(g,filename,body,token){g=g||{};if(!token)throw new Error('Not signed in to Microsoft 365');
+ if(!/^[A-Za-z0-9_\-'.]+\.(docx|txt|md)$/.test(filename))throw new Error('Bad filename');
+ const segs=String(g.folder||'').split('/').map(x=>x.trim()).filter(Boolean);if(segs.some(x=>x==='..'||x==='.'))throw new Error('Bad folder path');
+ const path=segs.concat([filename]).map(encodeURIComponent).join('/');
+ const root=g.driveId?'https://graph.microsoft.com/v1.0/drives/'+encodeURIComponent(String(g.driveId).trim()):'https://graph.microsoft.com/v1.0/me/drive';
+ const ext=filename.split('.').pop();
+ return {url:root+'/root:/'+path+':/content?@microsoft.graph.conflictBehavior=rename',init:{method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':MIME[ext]},body,cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'}};}
+async function uploadToGraph(g,filename,body,token,fetchImpl){const r=buildGraphUpload(g,filename,body,token);const res=await (fetchImpl||fetch)(r.url,r.init);
+ if(!res.ok)throw new Error(await readErr(res));const j=await res.json();return {name:j.name,webUrl:j.webUrl,id:j.id};}
+// header lines (with PHI, only for the OneDrive file) + body text -> file bytes
+function noteHeader(patient,date){const nm=splitName((patient||{}).name);return ['Patient: '+((nm.last||'Unknown')+(nm.first?', '+nm.first:'')),'MRN: '+(((patient||{}).mrn)||'not recorded'),'Date: '+isoDate(date)];}
+// opt.header===false -> no PHI header lines (filename only). Inner blank lines are preserved exactly.
+function buildExportBody(ext,patient,date,text,opt){opt=opt||{};const withH=opt.header!==false;const h=withH?noteHeader(patient,date):[];
+ text=String(text||'').replace(/\r\n?/g,'\n').replace(/^\s*\n/,'').replace(/\s+$/,'');
+ if(ext==='md')return withH?'# Clinical note\n\n'+h.map(x=>'**'+x.replace(':',':**')).join('  \n')+'\n\n---\n\n'+text+'\n':text+'\n';
+ if(ext==='txt')return withH?h.join('\n')+'\n\n'+text+'\n':text+'\n';return makeDocx(h,text);}
+// Minimal .docx writer (stored ZIP + WordprocessingML), no library needed.
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function crc32(b){let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRC[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function utf8(s){return new TextEncoder().encode(s);}
+function zipStore(files){const parts=[],cen=[];let off=0;
+ files.forEach(f=>{const name=utf8(f.name),data=typeof f.data==='string'?utf8(f.data):f.data,crc=crc32(data);
+  const lh=new DataView(new ArrayBuffer(30));lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(8,0,true);
+  lh.setUint16(10,0,true);lh.setUint16(12,0x21,true);lh.setUint32(14,crc,true);lh.setUint32(18,data.length,true);lh.setUint32(22,data.length,true);lh.setUint16(26,name.length,true);lh.setUint16(28,0,true);
+  parts.push(new Uint8Array(lh.buffer),name,data);
+  const ch=new DataView(new ArrayBuffer(46));ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint16(10,0,true);
+  ch.setUint16(12,0,true);ch.setUint16(14,0x21,true);ch.setUint32(16,crc,true);ch.setUint32(20,data.length,true);ch.setUint32(24,data.length,true);ch.setUint16(28,name.length,true);
+  ch.setUint32(42,off,true);cen.push(new Uint8Array(ch.buffer),name);off+=30+name.length+data.length;});
+ const csz=cen.reduce((a,b)=>a+b.length,0);const end=new DataView(new ArrayBuffer(22));end.setUint32(0,0x06054b50,true);end.setUint16(8,files.length,true);end.setUint16(10,files.length,true);
+ end.setUint32(12,csz,true);end.setUint32(16,off,true);const all=parts.concat(cen,[new Uint8Array(end.buffer)]);
+ const out=new Uint8Array(all.reduce((a,b)=>a+b.length,0));let p=0;all.forEach(b=>{out.set(b,p);p+=b.length;});return out;}
+function xesc(s){return String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function wRun(text,b,sz){const rp=(b?'<w:b/>':'')+(sz?'<w:sz w:val="'+sz+'"/>':'');return '<w:r>'+(rp?'<w:rPr>'+rp+'</w:rPr>':'')+'<w:t xml:space="preserve">'+xesc(text)+'</w:t></w:r>';}
+// **bold** spans become bold runs; everything else is literal text.
+function wPara(text,o){o=o||{};const runs=[];const parts=String(text).split(/(\*\*[^*\n]+\*\*)/);
+ parts.forEach(p=>{if(!p)return;const m=p.match(/^\*\*([^*\n]+)\*\*$/);runs.push(m?wRun(m[1],true,o.sz):wRun(p,o.b,o.sz));});
+ return '<w:p>'+(o.sp?'<w:pPr><w:spacing w:before="160" w:after="40"/></w:pPr>':'<w:pPr><w:spacing w:before="0" w:after="0"/></w:pPr>')+runs.join('')+'</w:p>';}
+function makeDocx(headerLines,text){const ps=headerLines.map(h=>wPara(h,{b:true})).concat(headerLines.length?[wPara('')]:[]);
+ String(text||'').replace(/\r\n?/g,'\n').split('\n').forEach(l=>{const m=l.match(/^#{1,3}\s+(.*)$/);if(m)ps.push(wPara(m[1],{b:true,sz:26,sp:true}));else ps.push(wPara(l.replace(/^[-*] /,'\u2022 ')));});
+ const doc='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+ps.join('')+'<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1080" w:right="1080" w:bottom="1080" w:left="1080" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr></w:body></w:document>';
+ return zipStore([
+  {name:'[Content_Types].xml',data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>'},
+  {name:'_rels/.rels',data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'},
+  {name:'word/document.xml',data:doc}]);}
+// true if any patient name part (>2 chars) or the MRN appears in text (used to block Share-to-MA leaks)
+function containsPatient(text,patient){text=String(text||'');patient=patient||{};const t=text.toLowerCase();const nm=splitName(patient.name);
+ const parts=[nm.first,nm.last].filter(x=>x&&x.length>2);if(parts.some(p=>new RegExp('\\b'+p.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i').test(text)))return true;
+ const m=String(patient.mrn||'').trim();return m.length>=4&&t.includes(m.toLowerCase());}
+
+// ---- AI Note: guarded request to OpenAI (Responses or Chat), Azure OpenAI, or an OpenAI-compatible server ----
+const REASONING=/^(?:o\d|gpt-5|gpt-6|gpt-7)/i;
+function isLoopbackUrl(u){return /^http:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?(?:\/|$)/i.test(u);}
+function compatBase(url){const u=trimSlash(url);if(!u)throw new Error('OpenAI-compatible base URL is empty');
+ if(!(isLoopbackUrl(u)||/^https:\/\//i.test(u)))throw new Error('OpenAI-compatible URL must be https://... or http://127.0.0.1/localhost (anything else is blocked by the page CSP)');
+ return u.replace(/\/chat\/completions$/,'');}
+function splitRefs(s){return String(s||'').split(/^\s*-{3,}\s*$/m).map(x=>x.trim()).filter(Boolean);}
+// Hard guard. parts=[{where,text}]. detect=DeID.detect. Returns [{where,category,value}].
+function checkOutgoing(parts,opt){opt=opt||{};const issues=[];const p=opt.patient||{};const det=opt.detect;
+ if(typeof det!=='function')throw new Error('leak detector missing: refusing to send');
+ (parts||[]).forEach(part=>{const text=String(part.text||'');if(!text.trim())return;
+  det(text,{alwaysRemove:opt.alwaysRemove||[],patientName:p.name||''}).forEach(x=>issues.push({where:part.where,category:x.category,value:x.value}));
+  const m=String(p.mrn||'').trim();if(m.length>=4&&text.toLowerCase().includes(m.toLowerCase())&&!issues.some(i=>i.where===part.where&&i.value===m))issues.push({where:part.where,category:'MRN',value:m});
+  const nm=splitName(p.name);[nm.first,nm.last].filter(x=>x&&x.length>2).forEach(w=>{if(new RegExp('\\b'+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i').test(text)&&!issues.some(i=>i.where===part.where&&i.value.toLowerCase().includes(w.toLowerCase())))issues.push({where:part.where,category:'Names',value:w});});});
+ return issues;}
+function GuardError(issues){const e=new Error('Blocked: identifiers detected in outgoing text. Nothing was sent.');e.name='GuardError';e.issues=issues;return e;}
+function formatIssues(issues){const by={};(issues||[]).forEach(i=>{(by[i.where]=by[i.where]||[]).push(i.category+': "'+i.value+'"');});
+ return Object.keys(by).map(w=>w+' -> '+by[w].join(', ')).join('\n');}
+function noteSystem(instr,refs,opt){opt=opt||{};const tpl=TEMPLATES[opt.template]||TEMPLATES.soap;const base=String(instr||'').trim()||tpl.instructions;const rs=Array.isArray(refs)?refs:splitRefs(refs);
+ return base+(rs.length?'\n\nReference material (templates/style examples, NOT about this patient):\n'+rs.map((r,i)=>'--- Reference '+(i+1)+' ---\n'+r).join('\n'):'')+NOTE_GUARD+'\n'+complianceBlock(opt);}
+function noteTarget(cfg){const n=cfg.note||{};const p=n.provider||'openai';
+ if(p==='azure'){const a=cfg.azure||{};const ep=trimSlash(a.endpoint);if(!AZ_HOST.test(ep))throw new Error('Azure endpoint is not set or not *.openai.azure.com');
+  if(!a.chatDeployment)throw new Error('Azure chat deployment name is empty');if(!a.key)throw new Error('Azure API key is empty');
+  return {kind:'chat',url:ep+'/openai/deployments/'+encodeURIComponent(a.chatDeployment.trim())+'/chat/completions?api-version='+encodeURIComponent((a.chatApiVersion||a.apiVersion||'').trim()),headers:{'api-key':a.key.trim(),'Content-Type':'application/json'},model:null,modelHint:a.chatDeployment};}
+ if(p==='compat'){const c=cfg.compat||{};const base=compatBase(c.url);if(!c.model)throw new Error('OpenAI-compatible model name is empty');const h={'Content-Type':'application/json'};if(c.key)h.Authorization='Bearer '+String(c.key).trim();
+  return {kind:'chat',url:base+'/chat/completions',headers:h,model:String(c.model).trim(),modelHint:c.model};}
+ const o=cfg.openai||{};if(!o.key)throw new Error('OpenAI API key is empty');const model=String(n.model||o.chatModel||'gpt-6.1-sol').trim();
+ const kind=n.api==='chat'?'chat':'responses';
+ return {kind,url:OPENAI+(kind==='chat'?'/chat/completions':'/responses'),headers:{Authorization:'Bearer '+o.key.trim(),'Content-Type':'application/json'},model,modelHint:model};}
+// opt: {instructions, references, patient:{name,mrn}, alwaysRemove, detect, signal}
+// Throws GuardError (and builds NO request) if anything identifying remains in what would be sent.
+function buildNoteRequest(cfg,deidText,opt){opt=opt||{};cfg=cfg||{};const note=String(deidText||'');if(!note.trim())throw new Error('Nothing de-identified to send');
+ const refs=Array.isArray(opt.references)?opt.references:splitRefs(opt.references);
+ const parts=[{where:'De-identified note',text:note},{where:'Project instructions',text:opt.instructions||''},{where:'Progression field',text:opt.progression||''}].concat(refs.map((r,i)=>({where:'Reference '+(i+1),text:r})));
+ const issues=checkOutgoing(parts,opt);if(issues.length)throw GuardError(issues);
+ const t=noteTarget(cfg);const sys=noteSystem(opt.instructions,refs,opt);const n=cfg.note||{};
+ const useTemp=!REASONING.test(String(t.modelHint||''))&&(t.model||/gpt-4|gpt-3/i.test(String(t.modelHint||'')));
+ let body;
+ if(t.kind==='responses'){body={model:t.model,instructions:sys,input:[{role:'user',content:[{type:'input_text',text:note}]}],store:false};
+  if(useTemp)body.temperature=0.2;if(n.effort&&REASONING.test(t.model))body.reasoning={effort:n.effort};}
+ else{body={messages:[{role:'system',content:sys},{role:'user',content:note}]};if(t.model)body.model=t.model;if(useTemp)body.temperature=0.2;}
+ const init={method:'POST',headers:t.headers,body:JSON.stringify(body),signal:opt.signal,cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'};
+ // final belt-and-braces: re-scan the exact serialized user content
+ const sent=t.kind==='responses'?body.input[0].content[0].text:body.messages[1].content;if(sent!==note)throw new Error('internal: payload mismatch');
+ return {url:t.url,init,kind:t.kind};}
+function parseNoteResponse(j){j=j||{};if(typeof j.output_text==='string'&&j.output_text)return j.output_text;
+ if(Array.isArray(j.output)){const t=[];j.output.forEach(o=>(o&&o.type==='message'&&Array.isArray(o.content)?o.content:[]).forEach(c=>{if(c&&(c.type==='output_text'||c.type==='text')&&typeof c.text==='string')t.push(c.text);}));if(t.length)return t.join('');}
+ const c=(((j.choices||[])[0]||{}).message||{}).content;if(typeof c==='string')return c;if(Array.isArray(c))return c.map(x=>x.text||'').join('');return '';}
+// keep the model's blank-line spacing exactly; only normalise line endings and strip outer whitespace
+function cleanNote(s){return String(s||'').replace(/\r\n?/g,'\n').replace(/^\s*\n/,'').replace(/\s+$/,'');}
+async function generateNote(cfg,deidText,opt,fetchImpl){const r=buildNoteRequest(cfg,deidText,opt);const res=await (fetchImpl||fetch)(r.url,r.init);
+ if(!res.ok)throw new Error(await readErr(res));const out=cleanNote(parseNoteResponse(await res.json()));if(!out)throw new Error('Model returned an empty note');return out;}
+
+// ---- Save destinations ----
+// Private LAN, loopback or Tailscale (100.64.0.0/10) IPv4, or a Tailscale MagicDNS name (*.ts.net)
+function isHelperHost(h){h=String(h||'').toLowerCase();if(isPrivateHost(h))return true;if(/^[a-z0-9-]+(?:\.[a-z0-9-]+)*\.ts\.net$/.test(h))return true;
+ const m=h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);if(!m)return false;const a=m.slice(1).map(Number);return a[0]===100&&a[1]>=64&&a[1]<=127&&a.every(x=>x<=255);}
+function validDocId(id){return /^[A-Za-z0-9][A-Za-z0-9_\-]{0,39}$/.test(String(id||'').trim());}
+// meta={docId,date,patient:{name,mrn}}; opt={format,includePhi(false),header(true)}
+// Default filename: DocID_YYYY-MM-DD.ext. includePhi: Last_First_MRN_DocID_YYYY-MM-DD.ext
+function buildNoteFilename(meta,opt){meta=meta||{};opt=opt||{};const id=String(meta.docId||'').trim();if(!validDocId(id))throw new Error('Document ID is required (letters, digits, - or _, max 40)');
+ const ext=/^(md|txt|docx)$/.test(opt.format)?opt.format:'md';const d=isoDate(meta.date);
+ if(!opt.includePhi)return fnPart(id,40)+'_'+d+'.'+ext;const p=meta.patient||{};const nm=splitName(p.name);
+ return (fnPart(nm.last)||'Unknown')+'_'+(fnPart(nm.first)||'Unknown')+'_'+(fnPart(p.mrn,24)||'NoMRN')+'_'+fnPart(id,40)+'_'+d+'.'+ext;}
+function fillDocId(text,docId){return String(text||'').replace(/\[DOC(?:UMENT)?[ _]?ID\]/gi,String(docId||'').trim());}
+function buildNoteBody(ext,meta,text,opt){opt=opt||{};meta=meta||{};const id=String(meta.docId||'').trim();text=cleanNote(fillDocId(text,id));
+ const hasId=new RegExp('^\\s*Document ID:\\s*'+id.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\s*$','mi').test(text);
+ const h=(opt.header===false||hasId)?[]:['Document ID: '+id,'Date: '+isoDate(meta.date)];
+ if(ext==='md')return (h.length?h.join('  \n')+'\n\n':'')+text+'\n';if(ext==='txt')return (h.length?h.join('\n')+'\n\n':'')+text+'\n';return makeDocx(h,text);}
+// File for the iOS share sheet / download / OneDrive: {name, type, data}
+function buildNoteFile(meta,text,opt){opt=opt||{};const ext=/^(md|txt|docx)$/.test(opt.format)?opt.format:'md';
+ return {name:buildNoteFilename(meta,Object.assign({},opt,{format:ext})),ext,type:MIME[ext].split(';')[0],data:buildNoteBody(ext,meta,text,opt)};}
+function buildHelperSave(helper,meta,text,opt){helper=helper||{};opt=opt||{};meta=meta||{};let u;try{u=new URL(String(helper.url||'').trim());}catch(e){throw new Error('Save helper URL is invalid');}
+ if(!/^https?:$/.test(u.protocol)||!isHelperHost(u.hostname))throw new Error('Save helper must be on a private LAN / Tailscale address (10.x, 172.16-31.x, 192.168.x, 100.64-127.x, *.ts.net) or 127.0.0.1');
+ if(u.protocol==='http:'&&!/^(?:127\.0\.0\.1|localhost)$/.test(u.hostname)&&u.port!=='5181')throw new Error('Use port 5181 for the save helper (the page CSP only allows that port on LAN hosts)');
+ if(!/^\d{6,12}$/.test(String(helper.pin||'')))throw new Error('Save helper PIN must be 6-12 digits');if(!String(text||'').trim())throw new Error('Nothing to save');
+ buildNoteFilename(meta,opt);const ext=/^(md|txt|docx)$/.test(opt.format)?opt.format:'md';const b={docId:String(meta.docId).trim(),date:isoDate(meta.date),format:ext,header:opt.header!==false,includePhi:!!opt.includePhi,text:String(text)};
+ if(opt.includePhi){b.name=String((meta.patient||{}).name||'');b.mrn=String((meta.patient||{}).mrn||'');} // name/MRN leave the device only when the MD opts in, and only to the Mac helper
+ return {url:u.origin+'/api/save',init:{method:'POST',headers:{'Content-Type':'application/json','X-Save-PIN':String(helper.pin)},body:JSON.stringify(b),cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'}};}
+
+// ---- post-generation passes on the AI RESPONSE ----
+const TOK={'Names':'[NAME]','Dates':'[DATE]','Addresses':'[ADDRESS]','Phone/Fax':'[PHONE]','Emails':'[EMAIL]','URLs':'[URL]','IP addresses':'[IP]','SSN / IDs':'[ID]','MRN':'[ID]','Facilities':'[FACILITY]'};
+// Always run: anything identifying left in the model output is replaced by a token and reported.
+function scrubResponse(text,opt){opt=opt||{};let t=String(text||'');const issues=checkOutgoing([{where:'AI response',text:t}],opt);
+ issues.slice().sort((a,b)=>b.value.length-a.value.length).forEach(i=>{const tok=TOK[i.category]||'[REDACTED]';
+  t=t.replace(new RegExp((/^\w/.test(i.value)?'\\b':'')+i.value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+(/\w$/.test(i.value)?'\\b':''),'g'),tok);});
+ return {text:t,flagged:issues};}
+// Plain-text template: remove markdown emphasis/headings/odd bullets but keep spacing.
+function toPlain(t){return String(t||'').replace(/\*\*([^*\n]+)\*\*/g,'$1').replace(/__([^_\n]+)__/g,'$1').replace(/^#{1,6}\s+/gm,'').replace(/^[ \t]*[•*▪●◦]\s+/gm,'- ').replace(/[\u2013\u2014]/g,'-').replace(/[\u201C\u201D]/g,'"').replace(/[\u2018\u2019]/g,"'");}
+const ATTEST_RE={externalRecords:/\b(?:external|outside|prior)\s+(?:medical\s+)?records?\b[^.\n]{0,60}\b(?:personally\s+)?reviewed\b|\bpersonally\s+reviewed\b/i,
+ imaging:/\b(?:independent(?:ly)?|direct(?:ly)?|personally)\s+(?:interpret|review)\w*\b[^.\n]{0,40}\b(?:imag|stud|film|scan|duplex|angio)|\b(?:images?|studies)\s+(?:were\s+)?(?:directly|independently|personally)\s+(?:interpreted|reviewed)/i,
+ procedure:/\b(?:risks?,?\s+benefits?|informed\s+consent|consent\s+(?:was\s+)?(?:obtained|discussed|addressed)|procedural\s+counsel)/i,
+ coordination:/\b(?:care\s+coordination|coordinat\w+\s+(?:of\s+)?care|staff\s+time)\b/i,
+ time:/\b(?:significant|substantial|extensive)\s+(?:physician\s+|face-to-face\s+)?time\b|\b(?:spent|total(?:\s+of)?)\s+(?:over\s+|more\s+than\s+|approximately\s+)?\d+\s*(?:minutes?|mins?)\b|\btotal\s+time\b/i};
+const SEVERITY=/\b(?:progressive|progressing|progression|worsening|worsened|complicated|poorly\s+controlled|uncontrolled|deteriorat\w*|exacerbat\w*)\b/gi;
+// Flags (does not rewrite) attestation-like or severity wording the MD did not confirm and the input does not support.
+function complianceCheck(note,opt){opt=opt||{};const a=opt.attest||{};const out=[];const n=String(note||'');const src=(String(opt.input||'')+'\n'+String(opt.progression||'')).toLowerCase();
+ Object.keys(ATTEST_RE).forEach(k=>{if(k!=='time'&&a[k])return;const m=n.match(ATTEST_RE[k]);if(m)out.push({type:'attestation',key:k,text:m[0],why:k==='time'?'time statements are never auto-inserted':'"'+(ATTEST[k]||{}).label+'" is not ticked'});});
+ const prog=String(opt.progression||'').toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>3);const seen=new Set();
+ for(const m of n.matchAll(SEVERITY)){const lw=m[0].toLowerCase().replace(/\s+/g,' ');if(seen.has(lw))continue;
+  if(src.includes(lw.slice(0,7)))continue; // wording supported by the input itself
+  const st=Math.max(n.lastIndexOf('.',m.index),n.lastIndexOf('\n',m.index))+1;let en=n.slice(m.index).search(/[.\n]/);en=en<0?n.length:m.index+en;
+  const sent=n.slice(st,en).toLowerCase();if(prog.length&&prog.some(w=>sent.includes(w)))continue; // physician-listed progression
+  seen.add(lw);out.push({type:'severity',text:m[0],why:'not supported by the input or the Progression field'});}
+ return out;}
+// Full pipeline: generate -> (plain) -> scrub -> compliance flags.
+async function generateGuardedNote(cfg,deidText,opt,fetchImpl){opt=opt||{};let raw=await generateNote(cfg,deidText,opt,fetchImpl);const tpl=TEMPLATES[opt.template]||TEMPLATES.soap;
+ if(tpl.plain)raw=toPlain(raw);const sc=scrubResponse(raw,opt);const flags=complianceCheck(sc.text,{attest:opt.attest,input:deidText,progression:opt.progression});
+ return {text:cleanNote(sc.text),redacted:sc.flagged,flags};}
+return {EM_INSTRUCTIONS,TEMPLATES,ATTEST,complianceBlock,validDocId,buildNoteFilename,fillDocId,buildNoteBody,scrubResponse,toPlain,complianceCheck,generateGuardedNote,NOTE_INSTRUCTIONS,NOTE_GUARD,splitRefs,checkOutgoing,formatIssues,noteSystem,buildNoteRequest,parseNoteResponse,cleanNote,generateNote,isHelperHost,buildHelperSave,buildNoteFile,MIME,splitName,buildFilename,isoDate,graphScopes,buildGraphUpload,uploadToGraph,buildExportBody,makeDocx,crc32,containsPatient,DEFAULT_VOCAB,SOAP_SYSTEM,mimeExt,pickMime,validate,buildTranscriptionRequest,parseTranscription,transcribe,isNoise,buildChatRequest,formatSoap,isPrivateHost,buildShareRequest,encodeWav};
+})();
+if(typeof module!=='undefined')module.exports=DeIDTx;
+/*TX-END*/
+</script>
+<script>
+(function(){
+const $=id=>document.getElementById(id);let tm,last={},lastPatient={name:'',mrn:'',date:null};
+const LS='deidpad.settings.v1';
+const DEF={backend:'azure',chunkSec:25,language:'en',vocab:DeIDTx.DEFAULT_VOCAB,chatProvider:'azure',
+ note:{provider:'openai',api:'responses',model:'gpt-6.1-sol',effort:''},compat:{url:'',model:'',key:''},helper:{url:'',pin:''},
+ azure:{endpoint:'',deployment:'whisper',apiVersion:'2024-06-01',key:'',chatDeployment:'',chatApiVersion:'2024-10-21'},
+ openai:{key:'',model:'whisper-1',chatModel:'gpt-4o'},local:{url:'http://127.0.0.1:8080/inference',wav:true},
+ share:{url:'',pin:''},m365:{clientId:'',tenantId:'',folder:'Clinical Notes/DeID Pad',driveId:'',format:'docx'}};
+const merge=(a,b)=>{const o=JSON.parse(JSON.stringify(a));if(b&&typeof b==='object')Object.keys(o).forEach(k=>{if(b[k]===undefined)return;o[k]=(o[k]&&typeof o[k]==='object')?Object.assign(o[k],b[k]):b[k];});return o;};
+let cfg=merge(DEF,null),remember=false;
+try{const s=localStorage.getItem(LS);if(s){cfg=merge(DEF,JSON.parse(s));remember=true;}}catch(e){}
+const getK=k=>k.split('.').reduce((o,p)=>o&&o[p],cfg);
+const setK=(k,v)=>{const ps=k.split('.');let o=cfg;ps.slice(0,-1).forEach(p=>o=o[p]);o[ps[ps.length-1]]=v;};
+function persist(){try{if(remember)localStorage.setItem(LS,JSON.stringify(cfg));else localStorage.removeItem(LS);}catch(e){}}
+const say=(t,ms)=>{$('msg').textContent=t;if(ms)setTimeout(()=>{if($('msg').textContent===t)$('msg').textContent='';},ms);};
+
+// ---- de-identification (unchanged behaviour) ----
+function go(){const r=DeID.run($('in').value,{alwaysRemove:$('names').value.split(','),facilities:$('fac').checked,patientName:$('pname').value});
+ $('out').value=$('in').value.trim()?r.text:'';last=r.removed;render();
+ lastPatient=r.patient||lastPatient;
+ if(!$('pname').dataset.dirty&&r.patient)$('pname').value=r.patient.name||'';
+ if(!$('pmrn').dataset.dirty&&r.patient)$('pmrn').value=r.patient.mrn||'';}
+function render(){const el=$('removed');el.textContent='';const ks=Object.keys(last);
+ if(!ks.length){el.textContent='Nothing detected.';return;}
+ ks.forEach(k=>{const h=document.createElement('h3');h.textContent=k+' ('+last[k].length+')';el.appendChild(h);const ul=document.createElement('ul');
+ last[k].forEach(v=>{const li=document.createElement('li');li.textContent=v;ul.appendChild(li);});el.appendChild(ul);});}
+const deb=()=>{clearTimeout(tm);tm=setTimeout(go,250);};
+['input','paste'].forEach(e=>$('in').addEventListener(e,deb));$('names').addEventListener('input',deb);$('fac').addEventListener('change',go);
+['pname','pmrn'].forEach(id=>$(id).addEventListener('input',()=>{$(id).dataset.dirty=$(id).value?'1':'';if(id==='pname')deb();}));
+async function copyText(v){try{await navigator.clipboard.writeText(v);}catch(e){const t=document.createElement('textarea');t.value=v;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();}}
+$('copy').onclick=async()=>{await copyText($('out').value);say('Copied',1500);};
+$('tog').onclick=()=>{const el=$('removed');const s=el.style.display!=='block';el.style.display=s?'block':'none';$('tog').textContent=s?'Hide what was removed':'Show what was removed';};
+
+// ---- ambient dictation ----
+let stream=null,mr=null,segTimer=null,tick=null,t0=0,active=false,gen=0,pending=0,queue=Promise.resolve(),ctl=new AbortController(),failed=[],ac=null,wake=null,mime='';
+function setTx(){$('txstat').textContent=pending?('transcribing '+pending+' chunk'+(pending>1?'s':'')+'…'):'';
+ $('retry').classList.toggle('hide',!failed.length);$('retry').textContent='Retry failed ('+failed.length+')';}
+function appendTranscript(text){const el=$('in');const cur=el.value;el.value=cur+(cur&&!/\s$/.test(cur)?' ':'')+text;el.scrollTop=el.scrollHeight;go();}
+function getAC(){if(!ac){const C=window.AudioContext||window.webkitAudioContext;if(C)ac=new C();}return ac;}
+async function toWav16k(blob){const a=getAC();if(!a)throw new Error('no AudioContext');const ab=await blob.arrayBuffer();
+ const buf=await new Promise((res,rej)=>{const p=a.decodeAudioData(ab,res,rej);if(p&&p.then)p.then(res,rej);});
+ const O=window.OfflineAudioContext||window.webkitOfflineAudioContext;const off=new O(1,Math.max(1,Math.ceil(buf.duration*16000)),16000);
+ const src=off.createBufferSource();src.buffer=buf;src.connect(off.destination);src.start(0);const r=await off.startRendering();
+ return new Blob([DeIDTx.encodeWav(r.getChannelData(0),16000)],{type:'audio/wav'});}
+async function doChunk(blob,g){if(g!==gen)return;let b=blob;
+ try{if(cfg.backend==='local'&&cfg.local.wav){try{b=await toWav16k(blob);}catch(e){b=blob;}}
+  const prompt=((cfg.vocab||'')+' '+$('in').value.slice(-300)).trim();
+  const text=await DeIDTx.transcribe(cfg,b,{prompt,filename:'chunk.'+DeIDTx.mimeExt(b.type),signal:ctl.signal,language:cfg.language});
+  if(g!==gen)return;if(!DeIDTx.isNoise(text))appendTranscript(text);
+ }catch(e){if(g!==gen||e.name==='AbortError')return;failed.push(blob);say('Transcription error: '+e.message);}finally{b=null;}}
+function enqueue(blob){const g=gen;pending++;setTx();queue=queue.then(()=>doChunk(blob,g)).catch(()=>{}).then(()=>{pending=Math.max(0,pending-1);setTx();if(!pending&&!active&&g===gen)afterDrain();});}
+function startSegment(){const parts=[];let r;try{r=new MediaRecorder(stream,mime?{mimeType:mime,audioBitsPerSecond:32000}:undefined);}catch(e){r=new MediaRecorder(stream);}
+ const g=gen;r.ondataavailable=e=>{if(e.data&&e.data.size)parts.push(e.data);};
+ r.onstop=()=>{const b=new Blob(parts,{type:r.mimeType||mime||'audio/webm'});parts.length=0;if(g===gen&&b.size>2000)enqueue(b);};
+ r.start(1000);const prev=mr;mr=r;if(prev&&prev.state!=='inactive')prev.stop();
+ clearTimeout(segTimer);segTimer=setTimeout(()=>{if(active)startSegment();},Math.max(10,Math.min(60,+cfg.chunkSec||25))*1000);}
+function fmt(s){s=Math.floor(s);return (s>=3600?Math.floor(s/3600)+':':'')+String(Math.floor(s/60)%60).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+async function startRec(){const err=DeIDTx.validate(cfg);if(err){say(err);openSettings();return;}
+ if(!navigator.mediaDevices||!window.MediaRecorder){say('Recording not supported here. Use a current Chrome/Edge/Safari over https:// or http://127.0.0.1');return;}
+ try{getAC();if(ac&&ac.state==='suspended')ac.resume();
+  stream=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true}});}
+ catch(e){say('Microphone blocked: '+e.message);return;}
+ mime=DeIDTx.pickMime(m=>MediaRecorder.isTypeSupported(m));active=true;ctl=new AbortController();startSegment();
+ t0=Date.now();$('elapsed').textContent='00:00';$('recind').classList.add('on');$('rec').disabled=true;$('stop').disabled=false;
+ tick=setInterval(()=>{$('elapsed').textContent=fmt((Date.now()-t0)/1000);},500);
+ try{if(navigator.wakeLock)wake=await navigator.wakeLock.request('screen');}catch(e){}
+ say('Recording ('+(mime||'default format')+', '+cfg.chunkSec+' s chunks)',3000);}
+function stopRec(discard){if(discard)gen++;active=false;clearTimeout(segTimer);clearInterval(tick);
+ if(mr&&mr.state!=='inactive')mr.stop();mr=null;
+ if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+ try{if(wake)wake.release();}catch(e){}wake=null;
+ $('recind').classList.remove('on');$('rec').disabled=false;$('stop').disabled=true;}
+let lastGenSrc='';
+function afterDrain(){const v=$('out').value;if($('ai').checked&&v.trim()&&!docIdErr()&&v!==lastGenSrc)genSoap();}
+$('rec').onclick=startRec;$('stop').onclick=()=>{stopRec(false);if(!pending)setTimeout(()=>{if(!pending)afterDrain();},300);};
+$('retry').onclick=()=>{const f=failed;failed=[];setTx();f.forEach(enqueue);};
+
+// ---- AI note (de-identified text only; hard leak guard before send, redaction pass after) ----
+const PLS='deidpad.noteprefs.v1';let prefs={instr:{},refs:''},rememberInstr=false;
+try{const s=localStorage.getItem(PLS);if(s){const j=JSON.parse(s);prefs={instr:j.instr||{},refs:j.refs||''};rememberInstr=true;}}catch(e){}
+const tplKey=()=>$('tpl').value||'soap';
+const curInstr=()=>{const v=prefs.instr[tplKey()];return v==null?DeIDTx.TEMPLATES[tplKey()].instructions:v;};
+function persistPrefs(){try{if(!rememberInstr){localStorage.removeItem(PLS);return;}
+ const bad=[].concat(...Object.keys(prefs.instr).map(k=>DeID.detect(prefs.instr[k])),DeID.detect(prefs.refs));
+ if(bad.length){say('Not saved on device: instructions/references look like they contain identifiers ('+bad.map(b=>b.value).slice(0,3).join(', ')+')');return;}
+ localStorage.setItem(PLS,JSON.stringify(prefs));}catch(e){}}
+function fillInstr(){$('instr').value=curInstr();$('refs').value=prefs.refs;$('rememberInstr').checked=rememberInstr;$('instrfor').textContent='for: '+DeIDTx.TEMPLATES[tplKey()].label;}
+$('instr').addEventListener('input',()=>{prefs.instr[tplKey()]=$('instr').value;persistPrefs();});
+$('refs').addEventListener('input',()=>{prefs.refs=$('refs').value;persistPrefs();});
+$('instrreset').onclick=()=>{delete prefs.instr[tplKey()];fillInstr();persistPrefs();};
+$('rememberInstr').onchange=()=>{rememberInstr=$('rememberInstr').checked;persistPrefs();};
+$('tpl').onchange=()=>{fillInstr();$('nfmt').value=DeIDTx.TEMPLATES[tplKey()].plain?'txt':'md';};
+$('ai').onchange=()=>{$('soapsec').classList.toggle('hide',!$('ai').checked);if(!$('ai').checked){$('soap').value='';guard('');}};
+const attest=()=>{const a={};document.querySelectorAll('[data-att]').forEach(c=>{if(c.checked)a[c.dataset.att]=true;});return a;};
+const patientNow=()=>({name:$('pname').value.trim(),mrn:$('pmrn').value.trim()});
+const alwaysList=()=>$('names').value.split(',').map(x=>x.trim()).filter(Boolean);
+function guard(kind,text,fixIssues){const g=$('guard');g.className=kind||'';g.textContent=text||'';
+ if(fixIssues&&fixIssues.length){const b=document.createElement('button');b.textContent='Replace these in the de-identified pane with tokens';
+  b.onclick=()=>{let t=$('out').value;fixIssues.forEach(i=>{const tok=({'Names':'[NAME]','Dates':'[DATE]','Addresses':'[ADDRESS]','Phone/Fax':'[PHONE]','Emails':'[EMAIL]','URLs':'[URL]'})[i.category]||'[ID]';t=t.split(i.value).join(tok);});$('out').value=t;guard('warn','Replaced. Review the de-identified pane, then Generate note again.');};
+  g.appendChild(document.createElement('br'));g.appendChild(b);}}
+function docIdErr(){const id=$('docid').value.trim();if(!id)return 'Enter a Document ID first (required).';if(!DeIDTx.validDocId(id))return 'Document ID: letters, digits, - or _ only (max 40).';
+ const p=patientNow();if(p.mrn&&id.toLowerCase().includes(p.mrn.toLowerCase()))return 'Document ID must not contain the MRN.';
+ if(DeIDTx.containsPatient(id,p)||DeID.detect(id,{patientName:p.name}).length)return 'Document ID looks like an identifier. Use your own reference code.';return '';}
+async function genSoap(){if($('gensoap').disabled)return;const deid=$('out').value;if(!deid.trim()){say('Nothing de-identified to send');return;}
+ const de=docIdErr();if(de){$('docid').classList.add('need');say(de);return;}$('docid').classList.remove('need');
+ const opt={template:tplKey(),instructions:curInstr(),references:prefs.refs,attest:attest(),progression:$('prog').value,progressionMode:$('progmode').checked,
+  patient:patientNow(),alwaysRemove:alwaysList(),detect:DeID.detect,signal:ctl.signal};
+ $('gensoap').disabled=true;say('Generating note…');guard('');
+ try{const r=await DeIDTx.generateGuardedNote(cfg,deid,opt);lastGenSrc=deid;$('soap').value=DeIDTx.fillDocId(r.text,$('docid').value.trim());
+  const msgs=[];if(r.redacted.length)msgs.push('Removed from the AI response (now tokens): '+r.redacted.map(i=>i.category+' "'+i.value+'"').join(', '));
+  r.flags.forEach(f=>msgs.push((f.type==='attestation'?'Unconfirmed attestation: "':'Severity wording: "')+f.text+'" ('+f.why+'). Edit or remove it.'));
+  guard(msgs.length?'warn':'',msgs.join('\n'));say('Note ready. Review it before saving.',3000);}
+ catch(e){if(e.name==='GuardError'){guard('bad','NOT SENT. The leak detector found identifiers in the outgoing text. Fix these, then Generate again:\n'+DeIDTx.formatIssues(e.issues),e.issues.filter(i=>i.where==='De-identified note'));say('Blocked: identifiers found. Nothing was sent.');}
+  else if(e.name!=='AbortError')say('AI note error: '+e.message);}
+ finally{$('gensoap').disabled=false;}}
+$('gensoap').onclick=genSoap;
+const finalNote=()=>($('ai').checked&&$('soap').value.trim())?$('soap').value:$('out').value;
+
+// ---- Send / Save the note (re-identification happens only here, locally) ----
+function noteMeta(){return {docId:$('docid').value.trim(),date:lastPatient.date||new Date(),patient:patientNow()};}
+function downloadFile(f){const url=URL.createObjectURL(new Blob([f.data],{type:f.type}));const a=document.createElement('a');a.href=url;a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);}
+async function saveNote(dest){const text=finalNote();if(!text.trim()){say('Nothing to save');return;}const de=docIdErr();if(de){$('docid').classList.add('need');say(de);return;}
+ const fmt=dest==='onedrive'&&!$('ai').checked?(cfg.m365.format||'docx'):$('nfmt').value;const opt={format:fmt,includePhi:$('incphi').checked,header:$('nhdr').checked};
+ let f;try{f=DeIDTx.buildNoteFile(noteMeta(),text,opt);}catch(e){say(e.message);return;}
+ const btn=dest==='onedrive'?$('complete'):$('savenote');
+ try{if(dest==='share'||dest==='sharetext'){
+   if(dest==='sharetext'){if(!navigator.share)throw new Error('Share sheet not available in this browser');await navigator.share({title:f.name,text:typeof f.data==='string'?f.data:DeIDTx.fillDocId(text,noteMeta().docId)});say('Shared',2000);return;}
+   const file=new File([f.data],f.name,{type:f.type});
+   if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:f.name});say('Shared: pick Save to Files > iCloud Drive',3000);return;}
+   downloadFile(f);say('Share sheet not available: downloaded '+f.name,3000);return;}
+  if(dest==='download'){downloadFile(f);say('Downloaded '+f.name,3000);return;}
+  btn.disabled=true;
+  if(dest==='helper'){const r=DeIDTx.buildHelperSave(cfg.helper,noteMeta(),text,opt);const res=await fetch(r.url,r.init);
+   if(!res.ok){let m='HTTP '+res.status;try{m=(await res.json()).error||m;}catch(e){}throw new Error(res.status===401?'wrong PIN':res.status===429?'too many attempts, locked out':m);}
+   const j=await res.json();say('Saved on Mac: '+j.name,4000);return;}
+  if(dest==='onedrive'){say('Uploading '+f.ext+' to Microsoft 365…');const tk=await token();const res=await DeIDTx.uploadToGraph(cfg.m365,f.name,f.data,tk);m365Stat();
+   $('msg').textContent='';const a=document.createElement('a');a.href=res.webUrl||'#';a.target='_blank';a.rel='noopener noreferrer';a.style.color='#fff';a.textContent='Saved: '+res.name;$('msg').appendChild(a);return;}}
+ catch(e){if(e.name==='AbortError')return;say('Save failed: '+(e.errorCode||e.message)+(e instanceof TypeError&&dest==='helper'?' (is save-helper.js running? From the https site use the Tailscale https URL, see README)':''));}
+ finally{btn.disabled=false;}}
+$('savenote').onclick=()=>saveNote($('dest').value);
+$('copysoap').onclick=async()=>{await copyText($('soap').value);say('Note copied',1500);};
+$('testhelper').onclick=async()=>{const o=$('helperres');o.textContent='testing…';try{const u=new URL(cfg.helper.url);if(!DeIDTx.isHelperHost(u.hostname))throw new Error('not a private/Tailscale address');
+ const r=await fetch(u.origin+'/api/health',{cache:'no-store',credentials:'omit'});const j=await r.json();o.textContent=j.ok?'OK: helper reachable':'unexpected reply';}catch(e){o.textContent='Failed: '+e.message;}};
+
+// ---- Share to MA (office LAN, de-identified text only) ----
+$('sendma').onclick=async()=>{const text=finalNote(),label=$('malabel').value.trim();
+ const p={name:$('pname').value,mrn:$('pmrn').value};
+ if(DeIDTx.containsPatient(text+' '+label,p)){say('Blocked: the note or label contains the patient name/MRN.');return;}
+ const ld=DeID.run(label,{});if(Object.keys(ld.removed).length){say('Blocked: the label looks like an identifier. Use initials or a room.');return;}
+ try{const r=DeIDTx.buildShareRequest(cfg.share,text,label);const res=await fetch(r.url,r.init);
+  if(!res.ok)throw new Error(res.status===401?'wrong PIN':res.status===429?'too many attempts, locked out':'HTTP '+res.status);say('Sent to MA queue',2500);}
+ catch(e){say('Send to MA failed: '+e.message+(e instanceof TypeError?' (is share-server.js running on that IP?)':''));}};
+
+// ---- Complete -> OneDrive/SharePoint via MSAL + Graph ----
+let msalApp=null,msalKey='',account=null;
+const redirectUri=()=>new URL('auth-redirect.html',location.href.split('#')[0]).href;
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('could not load '+src));document.head.appendChild(s);});}
+async function getMsal(){const m=cfg.m365;if(!m.clientId||!m.tenantId)throw new Error('set Entra client ID and tenant ID in Settings');
+ if(!/^https?:$/.test(location.protocol))throw new Error('OneDrive export needs the page served over http://localhost (node serve.js) or https, not file://');
+ const key=m.clientId+'|'+m.tenantId;if(msalApp&&msalKey===key)return msalApp;
+ if(!window.msal)await loadScript('vendor/msal-browser.min.js');
+ const a=new msal.PublicClientApplication({auth:{clientId:m.clientId.trim(),authority:'https://login.microsoftonline.com/'+encodeURIComponent(m.tenantId.trim()),redirectUri:redirectUri(),postLogoutRedirectUri:redirectUri()},
+  cache:{cacheLocation:'memoryStorage'},system:{loggerOptions:{piiLoggingEnabled:false,loggerCallback:function(){}}}});
+ await a.initialize();msalApp=a;msalKey=key;account=null;return a;}
+function preloadMsal(){if(cfg.m365.clientId&&cfg.m365.tenantId&&/^https?:$/.test(location.protocol))getMsal().catch(()=>{});}
+function m365Stat(){$('m365stat').textContent=account?('M365: '+(account.username||'signed in')):'';$('signin').textContent=account?'Sign out':'Sign in to M365';}
+$('signin').onclick=async()=>{try{const a=await getMsal();
+ if(account){const acc=account;account=null;m365Stat();try{await a.logoutPopup({account:acc});}catch(e){}return;}
+ const r=await a.loginPopup({scopes:DeIDTx.graphScopes(cfg.m365),prompt:'select_account'});account=r.account;m365Stat();}
+ catch(e){say('Sign-in failed: '+(e.errorCode||e.message));}};
+async function token(){const a=await getMsal();const acc=account||a.getAllAccounts()[0];if(!acc)throw new Error('click "Sign in to M365" first');
+ try{const r=await a.acquireTokenSilent({scopes:DeIDTx.graphScopes(cfg.m365),account:acc});account=r.account;return r.accessToken;}
+ catch(e){const r=await a.acquireTokenPopup({scopes:DeIDTx.graphScopes(cfg.m365),account:acc});account=r.account;return r.accessToken;}}
+$('complete').onclick=()=>saveNote('onedrive');
+
+// ---- settings panel ----
+function syncBackend(){document.querySelectorAll('[data-b]').forEach(d=>d.classList.toggle('hide',d.dataset.b!==cfg.backend));document.querySelectorAll('[data-np]').forEach(d=>d.classList.toggle('hide',d.dataset.np!==cfg.note.provider));}
+function fillSettings(){document.querySelectorAll('#settings [data-k]').forEach(el=>{const v=getK(el.dataset.k);if(el.type==='checkbox')el.checked=!!v;else el.value=v==null?'':v;});
+ $('remember').checked=remember;fillInstr();$('redir').textContent=/^https?:$/.test(location.protocol)?redirectUri():'(serve over http://localhost or https to use OneDrive export)';syncBackend();}
+document.querySelectorAll('#settings [data-k]').forEach(el=>{const h=()=>{let v=el.type==='checkbox'?el.checked:el.value;if(el.type==='number')v=+v||25;setK(el.dataset.k,v);syncBackend();persist();};el.addEventListener('input',h);el.addEventListener('change',h);});
+$('remember').onchange=()=>{if($('remember').checked&&!confirm('Save API keys and PIN in plain text in this browser? Only do this on your own, encrypted, password-locked device.')){$('remember').checked=false;return;}remember=$('remember').checked;persist();};
+function openSettings(){fillSettings();$('settings').classList.add('on');}
+$('gear').onclick=openSettings;$('closeset').onclick=()=>{$('settings').classList.remove('on');preloadMsal();};
+$('settings').addEventListener('click',e=>{if(e.target.id==='settings')$('closeset').onclick();});
+$('testtx').onclick=async()=>{const out=$('testres');out.textContent='testing…';
+ try{const wav=new Blob([DeIDTx.encodeWav(new Float32Array(16000),16000)],{type:'audio/wav'});
+  const t=await DeIDTx.transcribe(cfg,wav,{filename:'test.wav',language:cfg.language});out.textContent='OK: backend reachable'+(t?' ("'+t.slice(0,40)+'")':'');}
+ catch(e){out.textContent='Failed: '+e.message+(e instanceof TypeError?' (network/CORS/CSP. See README)':'');}};
+
+// ---- wipe ----
+function wipe(){stopRec(true);try{ctl.abort();}catch(e){}ctl=new AbortController();failed=[];pending=0;queue=Promise.resolve();setTx();
+ $('in').value='';$('out').value='';$('soap').value='';last={};render();guard('');lastGenSrc='';
+ ['docid','prog'].forEach(id=>$(id).value='');$('progmode').checked=false;$('incphi').checked=false;document.querySelectorAll('[data-att]').forEach(c=>c.checked=false);
+ ['pname','pmrn'].forEach(id=>{$(id).value='';$(id).dataset.dirty='';});$('malabel').value='';lastPatient={name:'',mrn:'',date:null};}
+$('clear').onclick=wipe;
+window.addEventListener('pagehide',()=>{wipe();$('names').value='';});window.addEventListener('beforeunload',()=>{wipe();});
+if(!remember)try{localStorage.removeItem(LS);}catch(e){}
+if(!rememberInstr)try{localStorage.removeItem(PLS);}catch(e){}
+preloadMsal();
+})();
+</script>
+<script>if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(function(){});</script></body></html>
