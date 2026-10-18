@@ -1,11 +1,11 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; media-src blob:; connect-src https://*.openai.azure.com https://api.openai.com http://127.0.0.1:* http://localhost:* http://*:5180 http://*:5181 https://*:5181 https://*.ts.net https://login.microsoftonline.com https://graph.microsoft.com; frame-src https://login.microsoftonline.com; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; img-src data: blob: 'self'; media-src blob:; connect-src 'self' https://*.openai.azure.com https://api.openai.com http://127.0.0.1:* http://localhost:* http://*:5180 http://*:5181 https://*:5181 https://*.ts.net https://login.microsoftonline.com https://graph.microsoft.com; frame-src https://login.microsoftonline.com; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="DeID Pad">
 <meta name="theme-color" content="#14324f"><link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-180.png">
-<meta name="referrer" content="no-referrer"><title>DeID Pad</title>
+<meta name="referrer" content="no-referrer"><meta name="deidpad-version" content="1.2.0-scan-ocr"><title>DeID Pad</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font:14px system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f6f8;color:#1b2430;height:100vh;display:flex;flex-direction:column}
 header{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#14324f;color:#fff;flex-wrap:wrap}
@@ -37,35 +37,56 @@ textarea{flex:1;width:100%;resize:none;font:13px/1.45 ui-monospace,Menlo,Consola
 #guard button{margin-top:4px;font-size:11px;padding:2px 8px;min-height:0}
 .ctl{display:flex;gap:6px 10px;flex-wrap:wrap;align-items:center;font-size:12px;margin:0 0 4px}.ctl select,.ctl input[type=text]{font-size:12px;padding:3px 5px;border:1px solid #b7c4d1;border-radius:4px}
 #docid:invalid,#docid.need{outline:2px solid #ffb3b3}
+#txbanner{background:#e8f3ff;color:#14324f;border-bottom:1px solid #b9d6f2}#micstat{font-size:11px;color:#cfe3ff}
+#scanv{position:fixed;inset:0;background:rgba(10,20,30,.55);display:none;z-index:8;overflow:auto;-webkit-overflow-scrolling:touch}
+#scanv.on{display:block}#scanv .scard{background:#fff;max-width:1400px;margin:10px auto;border-radius:8px;padding:10px 12px;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.sbar{display:flex;gap:6px 8px;flex-wrap:wrap;align-items:center;margin:0 0 6px;font-size:12px}.small{font-size:11px;color:#5a6a7a}
+.btn{display:inline-flex;align-items:center;padding:6px 12px;border-radius:5px;background:#e8eef5;color:#14324f;cursor:pointer;font-weight:600;font-size:14px}.btn.p{background:#3fa7ff;color:#fff}
+.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);opacity:0}
+#scanclose{margin-left:auto}#selbar{margin:0 0 6px}#selinfo{white-space:nowrap}#pages{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 6px}#pages button{font-size:12px;padding:4px 10px}#pages button.cur{background:#14324f;color:#fff}
+#scanprog{display:none;position:relative;height:18px;background:#e3ebf3;border-radius:9px;overflow:hidden;margin:0 0 6px;font-size:11px}
+#scanprog.on{display:block}#scanprog i{position:absolute;left:0;top:0;bottom:0;width:0;background:#3fa7ff;transition:width .15s}#scanprog span{position:relative;padding:0 8px;line-height:18px;font-weight:600;color:#14324f}
+.sbody{display:flex;gap:10px;align-items:flex-start}.sside{flex:1;min-width:0;display:flex;flex-direction:column}
+#stage{position:relative;flex:1.3;min-width:0;min-height:160px;background:#eef2f6;border:2px dashed #b7c4d1;border-radius:6px;display:flex;justify-content:center;align-items:flex-start;padding:4px}
+#stage.drag{border-color:#3fa7ff;background:#e1f0ff}#drophint{padding:40px 16px;color:#5a6a7a;text-align:center;font-size:13px}
+#imgwrap{position:relative;display:inline-block;line-height:0;max-width:100%}#imgwrap canvas{display:block;max-width:100%;max-height:72vh;width:auto;height:auto}
+#boxes{position:absolute;inset:0;touch-action:none;-webkit-user-select:none;user-select:none;cursor:text}
+#boxes .w{position:absolute;background:rgba(63,167,255,.16);border:1px solid rgba(63,167,255,.55);border-radius:2px}
+#boxes .w.lc{background:rgba(255,170,0,.16);border-color:rgba(230,140,0,.7)}#boxes .w.s{background:rgba(255,214,0,.5);border-color:#d9a400}
+#scantext{min-height:300px;flex:none;height:46vh}
+@media (max-width:760px){.sbody{flex-direction:column}#stage{width:100%}#imgwrap canvas{max-height:60vh}#scantext{height:34vh;min-height:200px}.btn{min-height:44px;font-size:16px}#scanv .scard{margin:0;border-radius:0;padding-top:max(10px,env(safe-area-inset-top))}
+.sbar button,.sbar .btn{font-size:14px;padding:6px 10px;min-height:42px}#selbar{position:sticky;top:0;z-index:2;background:#fff;padding:6px 0;margin:0;box-shadow:0 2px 4px rgba(0,0,0,.08)}}
 @media (max-width:760px){body{height:auto;min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
 main{flex-direction:column}section{flex:none}textarea{min-height:38vh;font-size:16px}
 #removed{width:auto}#names{width:100%;font-size:16px}#msg{margin-left:0}
 header{padding-top:max(8px,env(safe-area-inset-top))}
-#copy,#clear,#rec,#stop{flex:1 1 40%;min-height:48px;font-size:17px}button{min-height:44px}
+#copy,#clear,#rec,#stop,#scan{flex:1 1 40%;min-height:48px;font-size:17px}button{min-height:44px}
 .bar input,.bar select{font-size:16px}#settings .row{grid-template-columns:1fr}#settings input,#settings select{font-size:16px!important}.ctl select,.ctl input[type=text]{font-size:16px}#savenote,#gensoap{min-height:44px}}
 </style></head><body>
 <header><h1>DeID Pad</h1>
-<button class="rec" id="rec" title="Start ambient dictation">&#9679; Record</button><button id="stop" disabled>&#9632; Stop</button>
-<span id="recind"><i></i>REC <span id="elapsed">00:00</span></span><span id="txstat"></span><button id="retry" class="hide">Retry failed</button>
-<button class="p" id="copy">Copy output</button><button id="clear">Clear all</button><button id="tog">Show what was removed</button>
+<button type="button" class="rec" id="rec" title="Start ambient dictation">&#9679; Record</button><button type="button" id="stop" disabled>&#9632; Stop</button><span id="micstat"></span>
+<button type="button" id="scan" title="Scan a document: on-device OCR, nothing is uploaded">&#128247; Scan</button>
+<span id="recind"><i></i>REC <span id="elapsed">00:00</span></span><span id="txstat"></span><button type="button" id="retry" class="hide">Retry failed</button>
+<button type="button" class="p" id="copy">Copy output</button><button type="button" id="clear">Clear all</button><button type="button" id="tog">Show what was removed</button>
 <label><input type="checkbox" id="fac"> Remove facility names</label>
 <label><input type="checkbox" id="ai"> AI note</label>
 <label>Always remove: <input id="names" placeholder="comma-separated names (not saved)"></label>
-<button id="gear" title="Settings">&#9881; Settings</button><span id="msg" role="status"></span></header>
-<div class="warn">Rule-based, NOT a certified de-identification. Review the output before you share it. Nothing is stored on this device. Audio is sent only to the transcription backend you choose in Settings.</div>
+<button type="button" id="gear" title="Settings">&#9881; Settings</button><span id="msg" role="status"></span></header>
+<div class="warn">Rule-based, NOT a certified de-identification. Review the output before you share it. Nothing is stored on this device. Audio is sent only to the transcription backend you choose in Settings. Scanned images are read on this device only.</div>
+<div id="txbanner" class="warn hide" role="status"></div>
 <div class="bar">
- <label>MA label <input id="malabel" maxlength="24" size="10" placeholder="e.g. Rm 3 / HW" autocomplete="off"></label><button id="sendma">Send to MA</button>
+ <label>MA label <input id="malabel" maxlength="24" size="10" placeholder="e.g. Rm 3 / HW" autocomplete="off"></label><button type="button" id="sendma">Send to MA</button>
  <span class="sep"></span>
  <label>Document ID* <input id="docid" size="12" maxlength="40" autocomplete="off" spellcheck="false" placeholder="required" title="Your own document/encounter reference (not the MRN). Used in the note header and filename."></label>
  <span class="sep"></span>
  <label>Patient name <input id="pname" size="18" autocomplete="off" spellcheck="false" placeholder="Last, First"></label>
  <label>MRN <input id="pmrn" size="10" autocomplete="off" spellcheck="false"></label>
  <span title="Name and MRN stay on this device. They are never shown in the output, sent to the MA queue or sent to AI. They go into a filename only if you tick 'Name/MRN in filename'.">&#9432;</span>
- <button id="signin">Sign in to M365</button><button class="ok" id="complete">&#10003; Complete &rarr; OneDrive</button><span id="m365stat"></span>
+ <button type="button" id="signin">Sign in to M365</button><button type="button" class="ok" id="complete">&#10003; Complete &rarr; OneDrive</button><span id="m365stat"></span>
 </div>
 <main><section><h2>Paste (raw clinical text) or dictate</h2><textarea id="in" spellcheck="false" autocomplete="off" placeholder="Paste note, labs, imaging, referral... or press Record"></textarea></section>
 <section><h2>De-identified output (editable)</h2><textarea id="out" spellcheck="false" autocomplete="off"></textarea></section>
-<section id="soapsec" class="hide"><h2>AI note (from de-identified text only) <button id="gensoap" class="p">Generate note</button><button id="copysoap">Copy</button></h2>
+<section id="soapsec" class="hide"><h2>AI note (from de-identified text only) <button type="button" id="gensoap" class="p">Generate note</button><button type="button" id="copysoap">Copy</button></h2>
  <div class="ctl"><label>Template <select id="tpl"><option value="soap">SOAP (Established patient)</option><option value="em">Vascular Follow-up / New Patient (E/M)</option></select></label>
   <label title="Carry prior exam forward as stable unless changed; describe the progression you list; fresh wording."><input type="checkbox" id="progmode"> Progression mode</label>
   <label>Progression in the following conditions <input type="text" id="prog" size="22" autocomplete="off" placeholder="e.g. right SFA occlusion (blank = stable)"></label></div>
@@ -78,8 +99,27 @@ header{padding-top:max(8px,env(safe-area-inset-top))}
   <label>as <select id="nfmt"><option value="md">.md</option><option value="txt">.txt</option><option value="docx">.docx</option></select></label>
   <label><input type="checkbox" id="nhdr" checked> Document ID header</label>
   <label title="Off by default. When on, the filename becomes Last_First_MRN_DocID_date."><input type="checkbox" id="incphi"> Name/MRN in filename</label>
-  <button class="ok" id="savenote">Send / Save</button></div></section>
+  <button type="button" class="ok" id="savenote">Send / Save</button></div></section>
 <aside id="removed"></aside></main>
+
+<div id="scanv" role="dialog" aria-label="Scan document"><div class="scard">
+<div class="sbar"><b style="font-size:15px">Scan document</b><span class="small">Text recognition runs on this device. Images and text stay in memory only and are wiped by Clear all.</span><button type="button" id="scanclose" class="p">Done</button></div>
+<div class="sbar">
+ <label class="btn p" for="scancam">&#128247; Camera / add page</label><input type="file" id="scancam" class="vh" accept="image/*" capture="environment">
+ <label class="btn" for="scanpick">Choose photo / image</label><input type="file" id="scanpick" class="vh" accept="image/*" multiple>
+ <button type="button" id="rotl" title="Rotate left" aria-label="Rotate left">&#10226;</button><button type="button" id="rotr" title="Rotate right" aria-label="Rotate right">&#10227;</button>
+ <label title="If the text reads poorly, try the other orientations and keep the best"><input type="checkbox" id="scanauto" checked> Auto-rotate</label>
+ <label title="Grayscale + contrast stretch before reading"><input type="checkbox" id="scanenh" checked> Enhance</label>
+ <button type="button" id="rescan">Read again</button><button type="button" id="delpage">Remove page</button>
+</div>
+<div id="pages"></div>
+<div id="scanprog"><i></i><span></span></div>
+<div class="sbar" id="selbar"><button type="button" id="selall">Select all</button><button type="button" id="selnone">Clear selection</button><button type="button" class="p" id="copysel">Copy selection</button><button type="button" class="ok" id="inssel">Insert into text box</button><span id="selinfo" class="small"></span></div>
+<div class="sbody"><div id="stage"><div id="drophint">Tap <b>Camera / add page</b> to photograph a document, choose an image, paste an image (&#8984;V / Ctrl+V) or drag &amp; drop it here. Add several pages one after another.</div></div>
+<div class="sside">
+ <textarea id="scantext" spellcheck="false" autocomplete="off" placeholder="Recognized text appears here (editable). Insert uses the selected words, or this text if nothing is selected."></textarea>
+ <div class="sbar" style="margin-top:6px"><button type="button" id="insall">Insert all pages</button><span class="small">Tap a word to select it, drag across words to select a range, double-tap selects the whole line. Orange boxes = low confidence: check them.</span></div>
+</div></div></div></div>
 
 <div id="settings" role="dialog" aria-label="Settings"><div class="card">
 <h2 style="margin:0 0 6px;font-size:16px">Settings</h2>
@@ -98,7 +138,7 @@ header{padding-top:max(8px,env(safe-area-inset-top))}
   <div class="row"><span>API key</span><input type="password" data-k="openai.key" autocomplete="off"></div></div>
  <div data-b="local"><div class="row"><span>whisper.cpp server URL</span><input type="text" data-k="local.url" placeholder="http://127.0.0.1:8080/inference"></div>
   <div class="row"><span>Convert to 16 kHz WAV in browser</span><label><input type="checkbox" data-k="local.wav"> recommended (whisper-server reads WAV without ffmpeg)</label></div></div>
- <button id="testtx">Test connection (1 s of silence)</button> <span id="testres" style="font-size:12px"></span>
+ <button type="button" id="testtx">Test connection (1 s of silence)</button> <span id="testres" style="font-size:12px"></span>
 </fieldset>
 <fieldset><legend>AI note (OpenAI / Azure OpenAI / OpenAI-compatible)</legend>
  <div class="note">Only the de-identified output pane (plus the instructions, references and Progression field below) is sent, and only after the leak detector finds nothing identifying in it. Use an OpenAI API project with a signed BAA and zero data retention even for de-identified text. Requests use <code>store:false</code>.</div>
@@ -139,7 +179,7 @@ header{padding-top:max(8px,env(safe-area-inset-top))}
  <label><input type="checkbox" id="remember"> Remember settings (including API keys and PIN) on this device</label>
  <div class="note">Warning: this saves keys in plain text in this browser's localStorage. Anyone who can use this browser profile can read them. Don't use it on shared workstations. Pasted text, transcripts and audio are never saved.</div>
 </fieldset>
-<button class="p" id="closeset">Done</button>
+<button type="button" class="p" id="closeset">Done</button>
 </div></div>
 <script>
 /*ENGINE-START*/
@@ -566,7 +606,39 @@ function complianceCheck(note,opt){opt=opt||{};const a=opt.attest||{};const out=
 async function generateGuardedNote(cfg,deidText,opt,fetchImpl){opt=opt||{};let raw=await generateNote(cfg,deidText,opt,fetchImpl);const tpl=TEMPLATES[opt.template]||TEMPLATES.soap;
  if(tpl.plain)raw=toPlain(raw);const sc=scrubResponse(raw,opt);const flags=complianceCheck(sc.text,{attest:opt.attest,input:deidText,progression:opt.progression});
  return {text:cleanNote(sc.text),redacted:sc.flagged,flags};}
-return {EM_INSTRUCTIONS,TEMPLATES,ATTEST,complianceBlock,validDocId,buildNoteFilename,fillDocId,buildNoteBody,scrubResponse,toPlain,complianceCheck,generateGuardedNote,NOTE_INSTRUCTIONS,NOTE_GUARD,splitRefs,checkOutgoing,formatIssues,noteSystem,buildNoteRequest,parseNoteResponse,cleanNote,generateNote,isHelperHost,buildHelperSave,buildNoteFile,MIME,splitName,buildFilename,isoDate,graphScopes,buildGraphUpload,uploadToGraph,buildExportBody,makeDocx,crc32,containsPatient,DEFAULT_VOCAB,SOAP_SYSTEM,mimeExt,pickMime,validate,buildTranscriptionRequest,parseTranscription,transcribe,isNoise,buildChatRequest,formatSoap,isPrivateHost,buildShareRequest,encodeWav};
+// ---- Document scanner / OCR helpers (pure; images and text stay in memory in the page) ----
+// Target canvas size for OCR: long edge ~2000 px (small photos are upscaled to >=1400 px; tiny text OCRs badly).
+function scanFit(w,h,max){max=max||2000;const L=Math.max(w,h)||1;let s=L>max?max/L:L<1400?Math.min(2,1400/L):1;
+ return {w:Math.max(1,Math.round(w*s)),h:Math.max(1,Math.round(h*s)),scale:s};}
+// In-place grayscale + contrast stretch (1st..99th percentile) on RGBA pixel data.
+function grayContrast(px){const n=px.length>>2,hist=new Uint32Array(256),g=new Uint8Array(n);
+ for(let i=0,j=0;j<n;i+=4,j++){const v=(px[i]*77+px[i+1]*150+px[i+2]*29)>>8;g[j]=v;hist[v]++;}
+ let lo=0,hi=255,acc=0;const cut=n*0.01;for(;lo<255&&(acc+=hist[lo])<=cut;lo++);acc=0;for(;hi>0&&(acc+=hist[hi])<=cut;hi--);
+ if(hi-lo<16){lo=0;hi=255;}const k=255/(hi-lo);
+ for(let i=0,j=0;j<n;i+=4,j++){const v=Math.max(0,Math.min(255,Math.round((g[j]-lo)*k)));px[i]=px[i+1]=px[i+2]=v;px[i+3]=255;}
+ return {lo,hi};}
+// Flatten a Tesseract.js result (blocks -> paragraphs -> lines -> words) into reading-order words with line/paragraph indices.
+function ocrWords(data){const out=[];let line=-1,para=-1;((data&&data.blocks)||[]).forEach(b=>(b.paragraphs||[]).forEach(p=>{para++;(p.lines||[]).forEach(l=>{line++;
+ (l.words||[]).forEach(w=>{const t=String(w.text||'').trim();if(!t)return;const bb=w.bbox||{};out.push({i:out.length,text:t,conf:Math.round(w.confidence||0),line,para,bbox:{x0:bb.x0|0,y0:bb.y0|0,x1:bb.x1|0,y1:bb.y1|0}});});});}));
+ return out;}
+// Plain text from words (all, or only the indices in `sel`): words on a line joined by spaces, lines by \n, paragraphs by a blank line.
+function wordsText(words,sel){const has=sel?(i=>sel.has?sel.has(i):sel.includes(i)):(()=>true);let s='',pl=null,pp=null;
+ (words||[]).forEach(w=>{if(!has(w.i))return;if(pl===null)s+=w.text;else if(w.line===pl)s+=' '+w.text;else s+=(w.para!==pp?'\n\n':'\n')+w.text;pl=w.line;pp=w.para;});
+ return s;}
+// Indices of words in reading order between two words (inclusive): drag-to-select like text selection.
+function wordRange(a,b){const lo=Math.min(a,b),hi=Math.max(a,b);const r=[];for(let i=lo;i<=hi;i++)r.push(i);return r;}
+function lineOf(words,i){const w=words[i];return w?words.filter(x=>x.line===w.line).map(x=>x.i):[];}
+const SCAN_SEP=n=>'--- Scanned page '+n+' ---';
+// Appends scanned text to the paste pane with a page separator.
+function scanInsert(cur,text,n){cur=String(cur||'');const t=String(text||'').replace(/\r\n?/g,'\n').trim();if(!t)return cur;
+ return cur+(cur.trim()?(/\n\s*$/.test(cur)?'\n':'\n\n'):'')+SCAN_SEP(n)+'\n'+t+'\n';}
+// Rotation scoring for auto-rotate: mean word confidence weighted by how many real (>=3 letter) words were found.
+function scanScore(words){const good=(words||[]).filter(w=>/[A-Za-z]{3,}/.test(w.text));if(!good.length)return 0;
+ const mc=good.reduce((a,w)=>a+w.conf,0)/good.length;return mc*Math.log(1+good.length);}
+function meanConf(words){return words&&words.length?Math.round(words.reduce((a,w)=>a+w.conf,0)/words.length):0;}
+const SCAN_TYPES=/^image\/(png|jpe?g|gif|webp|bmp|heic|heif|avif|tiff?)$/i;
+const isScanImage=f=>!!f&&(SCAN_TYPES.test(f.type||'')||(!f.type&&/\.(png|jpe?g|gif|webp|bmp|heic|heif|avif|tiff?)$/i.test(f.name||'')));
+return {scanFit,grayContrast,ocrWords,wordsText,wordRange,lineOf,SCAN_SEP,scanInsert,scanScore,meanConf,isScanImage,EM_INSTRUCTIONS,TEMPLATES,ATTEST,complianceBlock,validDocId,buildNoteFilename,fillDocId,buildNoteBody,scrubResponse,toPlain,complianceCheck,generateGuardedNote,NOTE_INSTRUCTIONS,NOTE_GUARD,splitRefs,checkOutgoing,formatIssues,noteSystem,buildNoteRequest,parseNoteResponse,cleanNote,generateNote,isHelperHost,buildHelperSave,buildNoteFile,MIME,splitName,buildFilename,isoDate,graphScopes,buildGraphUpload,uploadToGraph,buildExportBody,makeDocx,crc32,containsPatient,DEFAULT_VOCAB,SOAP_SYSTEM,mimeExt,pickMime,validate,buildTranscriptionRequest,parseTranscription,transcribe,isNoise,buildChatRequest,formatSoap,isPrivateHost,buildShareRequest,encodeWav};
 })();
 if(typeof module!=='undefined')module.exports=DeIDTx;
 /*TX-END*/
@@ -608,7 +680,11 @@ $('tog').onclick=()=>{const el=$('removed');const s=el.style.display!=='block';e
 // ---- ambient dictation ----
 let stream=null,mr=null,segTimer=null,tick=null,t0=0,active=false,gen=0,pending=0,queue=Promise.resolve(),ctl=new AbortController(),failed=[],ac=null,wake=null,mime='';
 function setTx(){$('txstat').textContent=pending?('transcribing '+pending+' chunk'+(pending>1?'s':'')+'…'):'';
- $('retry').classList.toggle('hide',!failed.length);$('retry').textContent='Retry failed ('+failed.length+')';}
+ $('retry').classList.toggle('hide',!failed.length);$('retry').textContent=(DeIDTx.validate(cfg)?'Transcribe held audio (':'Retry failed (')+failed.length+')';}
+function banner(t){$('txbanner').textContent=t||'';$('txbanner').classList.toggle('hide',!t);}
+const NOBACKEND='Recording: audio is held in memory on this device. Set up transcription in Settings, or dictate with your keyboard.';
+function micStatus(){try{if(!navigator.permissions||!navigator.permissions.query)return;navigator.permissions.query({name:'microphone'}).then(st=>{
+ const show=()=>{$('micstat').textContent=({granted:'Mic: allowed',prompt:'Mic: will ask',denied:'Mic: blocked (Settings > Safari > Microphone)'})[st.state]||'';};show();st.onchange=show;}).catch(()=>{});}catch(e){}}
 function appendTranscript(text){const el=$('in');const cur=el.value;el.value=cur+(cur&&!/\s$/.test(cur)?' ':'')+text;el.scrollTop=el.scrollHeight;go();}
 function getAC(){if(!ac){const C=window.AudioContext||window.webkitAudioContext;if(C)ac=new C();}return ac;}
 async function toWav16k(blob){const a=getAC();if(!a)throw new Error('no AudioContext');const ab=await blob.arrayBuffer();
@@ -617,6 +693,7 @@ async function toWav16k(blob){const a=getAC();if(!a)throw new Error('no AudioCon
  const src=off.createBufferSource();src.buffer=buf;src.connect(off.destination);src.start(0);const r=await off.startRendering();
  return new Blob([DeIDTx.encodeWav(r.getChannelData(0),16000)],{type:'audio/wav'});}
 async function doChunk(blob,g){if(g!==gen)return;let b=blob;
+ if(DeIDTx.validate(cfg)){failed.push(blob);banner(NOBACKEND);return;} // no backend yet: hold the audio in memory
  try{if(cfg.backend==='local'&&cfg.local.wav){try{b=await toWav16k(blob);}catch(e){b=blob;}}
   const prompt=((cfg.vocab||'')+' '+$('in').value.slice(-300)).trim();
   const text=await DeIDTx.transcribe(cfg,b,{prompt,filename:'chunk.'+DeIDTx.mimeExt(b.type),signal:ctl.signal,language:cfg.language});
@@ -629,15 +706,21 @@ function startSegment(){const parts=[];let r;try{r=new MediaRecorder(stream,mime
  r.start(1000);const prev=mr;mr=r;if(prev&&prev.state!=='inactive')prev.stop();
  clearTimeout(segTimer);segTimer=setTimeout(()=>{if(active)startSegment();},Math.max(10,Math.min(60,+cfg.chunkSec||25))*1000);}
 function fmt(s){s=Math.floor(s);return (s>=3600?Math.floor(s/3600)+':':'')+String(Math.floor(s/60)%60).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
-async function startRec(){const err=DeIDTx.validate(cfg);if(err){say(err);openSettings();return;}
- if(!navigator.mediaDevices||!window.MediaRecorder){say('Recording not supported here. Use a current Chrome/Edge/Safari over https:// or http://127.0.0.1');return;}
- try{getAC();if(ac&&ac.state==='suspended')ac.resume();
-  stream=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true}});}
- catch(e){say('Microphone blocked: '+e.message);return;}
+// One tap: getUserMedia is called synchronously inside the click (before any await or UI change), so iOS shows its
+// prompt once and recording starts as soon as it resolves. A live stream from this session is reused.
+function startRec(){if(active)return;
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){say('Recording not supported here. Use a current Chrome/Edge/Safari over https:// or http://127.0.0.1');return;}
+ const live=stream&&stream.getAudioTracks().some(t=>t.readyState==='live');let p;
+ try{p=live?Promise.resolve(stream):navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true}});}catch(e){p=Promise.reject(e);}
+ try{getAC();if(ac&&ac.state==='suspended')ac.resume();}catch(e){}
+ $('rec').disabled=true;
+ p.then(s=>{stream=s;beginRec();},e=>{$('rec').disabled=false;say('Microphone blocked: '+(e&&e.message||e));micStatus();});}
+function beginRec(){if(active)return;
  mime=DeIDTx.pickMime(m=>MediaRecorder.isTypeSupported(m));active=true;ctl=new AbortController();startSegment();
  t0=Date.now();$('elapsed').textContent='00:00';$('recind').classList.add('on');$('rec').disabled=true;$('stop').disabled=false;
  tick=setInterval(()=>{$('elapsed').textContent=fmt((Date.now()-t0)/1000);},500);
- try{if(navigator.wakeLock)wake=await navigator.wakeLock.request('screen');}catch(e){}
+ try{if(navigator.wakeLock)navigator.wakeLock.request('screen').then(w=>{wake=w;},()=>{});}catch(e){}
+ const err=DeIDTx.validate(cfg);banner(err?NOBACKEND:'');micStatus();
  say('Recording ('+(mime||'default format')+', '+cfg.chunkSec+' s chunks)',3000);}
 function stopRec(discard){if(discard)gen++;active=false;clearTimeout(segTimer);clearInterval(tick);
  if(mr&&mr.state!=='inactive')mr.stop();mr=null;
@@ -647,7 +730,7 @@ function stopRec(discard){if(discard)gen++;active=false;clearTimeout(segTimer);c
 let lastGenSrc='';
 function afterDrain(){const v=$('out').value;if($('ai').checked&&v.trim()&&!docIdErr()&&v!==lastGenSrc)genSoap();}
 $('rec').onclick=startRec;$('stop').onclick=()=>{stopRec(false);if(!pending)setTimeout(()=>{if(!pending)afterDrain();},300);};
-$('retry').onclick=()=>{const f=failed;failed=[];setTx();f.forEach(enqueue);};
+$('retry').onclick=()=>{const err=DeIDTx.validate(cfg);if(err){say(err);openSettings();return;}banner('');const f=failed;failed=[];setTx();f.forEach(enqueue);};
 
 // ---- AI note (de-identified text only; hard leak guard before send, redaction pass after) ----
 const PLS='deidpad.noteprefs.v1';let prefs={instr:{},refs:''},rememberInstr=false;
@@ -754,23 +837,114 @@ function fillSettings(){document.querySelectorAll('#settings [data-k]').forEach(
 document.querySelectorAll('#settings [data-k]').forEach(el=>{const h=()=>{let v=el.type==='checkbox'?el.checked:el.value;if(el.type==='number')v=+v||25;setK(el.dataset.k,v);syncBackend();persist();};el.addEventListener('input',h);el.addEventListener('change',h);});
 $('remember').onchange=()=>{if($('remember').checked&&!confirm('Save API keys and PIN in plain text in this browser? Only do this on your own, encrypted, password-locked device.')){$('remember').checked=false;return;}remember=$('remember').checked;persist();};
 function openSettings(){fillSettings();$('settings').classList.add('on');}
-$('gear').onclick=openSettings;$('closeset').onclick=()=>{$('settings').classList.remove('on');preloadMsal();};
+$('gear').onclick=openSettings;$('closeset').onclick=()=>{$('settings').classList.remove('on');preloadMsal();if(!DeIDTx.validate(cfg)&&/held in memory/.test($('txbanner').textContent)){banner(failed.length?'Transcription is set up. Tap "Transcribe held audio" to send the held chunks.':'');}setTx();};
 $('settings').addEventListener('click',e=>{if(e.target.id==='settings')$('closeset').onclick();});
 $('testtx').onclick=async()=>{const out=$('testres');out.textContent='testing…';
  try{const wav=new Blob([DeIDTx.encodeWav(new Float32Array(16000),16000)],{type:'audio/wav'});
   const t=await DeIDTx.transcribe(cfg,wav,{filename:'test.wav',language:cfg.language});out.textContent='OK: backend reachable'+(t?' ("'+t.slice(0,40)+'")':'');}
  catch(e){out.textContent='Failed: '+e.message+(e instanceof TypeError?' (network/CORS/CSP. See README)':'');}};
 
+// ---- Document scanner + on-device OCR (Tesseract.js vendored in vendor/tesseract, loaded only when Scan is used) ----
+// Images live in in-memory canvases; text in JS variables. Nothing is uploaded or persisted. Clear all wipes them and the OCR worker.
+const SC={pages:[],cur:-1,worker:null,wp:null,q:Promise.resolve(),gen:0,sel:new Set(),pend:0};let progLabel='';
+const ocrBase=()=>new URL('vendor/tesseract/',location.href.split('#')[0]).href;
+function scanProg(p,t){const el=$('scanprog');el.classList.toggle('on',p!=null);el.querySelector('i').style.width=Math.round((p||0)*100)+'%';el.querySelector('span').textContent=t||'';}
+async function getOcr(){if(SC.worker)return SC.worker;if(!SC.wp)SC.wp=(async()=>{
+  if(!/^https?:$/.test(location.protocol))throw new Error('Scanning needs the page served over http(s): use the website or node serve.js');
+  scanProg(0,'Loading on-device text recognition (first time ~7 MB)…');
+  if(!window.Tesseract)await loadScript('vendor/tesseract/tesseract.min.js');const b=ocrBase();
+  const w=await Tesseract.createWorker('eng',1,{workerPath:b+'worker.min.js',corePath:b,langPath:b.replace(/\/$/,''),workerBlobURL:false,cacheMethod:'none',gzip:true,
+   logger:m=>{if(!m||typeof m.progress!=='number')return;const st=m.status==='recognizing text'?(progLabel||'Recognizing'):String(m.status||'').replace(/^\w/,c=>c.toUpperCase());scanProg(m.progress,st+' '+Math.round(m.progress*100)+'%');},
+   errorHandler:()=>{}});
+  await w.setParameters({preserve_interword_spaces:'1',user_defined_dpi:'300'});return w;})();
+ try{SC.worker=await SC.wp;return SC.worker;}catch(e){SC.wp=null;throw e;}}
+function loadImg(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file);const im=new Image();
+ const done=()=>URL.revokeObjectURL(u);im.onload=()=>{done();res(im);};im.onerror=()=>{done();rej(new Error('could not read this image'));};im.src=u;});}
+function drawRot(src,rot,max,enh){const r=((rot%360)+360)%360,f=max?Math.min(1,max/Math.max(src.width,src.height)):1,W=Math.round(src.width*f),H=Math.round(src.height*f);
+ const c=document.createElement('canvas');c.width=r%180?H:W;c.height=r%180?W:H;const x=c.getContext('2d',{willReadFrequently:true});
+ x.translate(c.width/2,c.height/2);x.rotate(r*Math.PI/180);x.drawImage(src,-W/2,-H/2,W,H);x.setTransform(1,0,0,1,0,0);
+ if(enh){const d=x.getImageData(0,0,c.width,c.height);DeIDTx.grayContrast(d.data);x.putImageData(d,0,0);}return c;}
+function freeCanvas(c){if(c){c.width=0;c.height=0;}}
+async function ocrRead(w,canvas){return DeIDTx.ocrWords((await w.recognize(canvas,{},{blocks:true,text:false})).data);}
+async function readPage(pg,auto){const g=SC.gen;const w=await getOcr();if(g!==SC.gen||!SC.pages.includes(pg))return;const n=SC.pages.indexOf(pg)+1;
+ freeCanvas(pg.canvas);pg.canvas=drawRot(pg.src,pg.rot,0,$('scanenh').checked);if(SC.pages[SC.cur]===pg)showPage(SC.cur);
+ progLabel='Reading page '+n;let words=await ocrRead(w,pg.canvas);if(g!==SC.gen)return;
+ if(auto&&$('scanauto').checked&&(DeIDTx.meanConf(words)<70||words.length<8)){ // weak result: try the other orientations at low resolution
+  let best={rot:pg.rot,score:-1};
+  for(const d of [0,90,180,270]){progLabel='Checking orientation '+d+'°';const c=drawRot(pg.src,pg.rot+d,1100,true);const sc=DeIDTx.scanScore(await ocrRead(w,c));freeCanvas(c);if(g!==SC.gen)return;
+   if(sc>best.score*1.15||best.score<0)best={rot:pg.rot+d,score:sc};}
+  if(((best.rot-pg.rot)%360+360)%360){pg.rot=((best.rot%360)+360)%360;freeCanvas(pg.canvas);pg.canvas=drawRot(pg.src,pg.rot,0,$('scanenh').checked);
+   progLabel='Reading page '+n+' (rotated '+pg.rot+'°)';words=await ocrRead(w,pg.canvas);if(g!==SC.gen)return;}}
+ pg.words=words;pg.text=DeIDTx.wordsText(words);pg.conf=DeIDTx.meanConf(words);pg.state='done';
+ if(SC.pages[SC.cur]===pg){SC.sel.clear();showPage(SC.cur);}else renderStrip();}
+function queueRead(pg,auto){pg.state='queued';SC.pend++;renderStrip();const g=SC.gen;
+ SC.q=SC.q.then(()=>readPage(pg,auto)).catch(e=>{if(g===SC.gen){pg.state='error';say('Scan error: '+(e&&e.message||e));}})
+  .then(()=>{if(g!==SC.gen)return;SC.pend=Math.max(0,SC.pend-1);if(!SC.pend)scanProg(null);else scanProg(0,'Waiting…');renderStrip();});}
+function renderStrip(){const el=$('pages');el.textContent='';SC.pages.forEach((pg,i)=>{const b=document.createElement('button');b.type='button';
+ b.textContent='Page '+(i+1)+(pg.state==='done'?' · '+pg.words.length+' words, '+pg.conf+'%':pg.state==='error'?' · error':' · reading…');
+ b.className=i===SC.cur?'cur':'';b.onclick=()=>{SC.sel.clear();showPage(i);};el.appendChild(b);});
+ $('delpage').disabled=$('rotl').disabled=$('rotr').disabled=$('rescan').disabled=SC.cur<0;}
+function showPage(i){SC.cur=i;const pg=SC.pages[i],st=$('stage');st.textContent='';renderStrip();
+ if(!pg){const h=document.createElement('div');h.id='drophint';h.innerHTML='Tap <b>Camera / add page</b> to photograph a document, choose an image, paste an image or drag &amp; drop it here.';st.appendChild(h);$('scantext').value='';updSel();return;}
+ const wrap=document.createElement('div');wrap.id='imgwrap';wrap.appendChild(pg.canvas);const bx=document.createElement('div');bx.id='boxes';wrap.appendChild(bx);st.appendChild(wrap);
+ const W=pg.canvas.width,H=pg.canvas.height;(pg.words||[]).forEach(w=>{const e=document.createElement('span');e.className='w'+(w.conf<60?' lc':'');e.dataset.i=w.i;
+  e.style.left=(w.bbox.x0/W*100)+'%';e.style.top=(w.bbox.y0/H*100)+'%';e.style.width=((w.bbox.x1-w.bbox.x0)/W*100)+'%';e.style.height=((w.bbox.y1-w.bbox.y0)/H*100)+'%';bx.appendChild(e);});
+ $('scantext').value=pg.text||'';bindBoxes(bx);updSel();}
+function updSel(){const pg=SC.pages[SC.cur];document.querySelectorAll('#boxes .w').forEach(e=>e.classList.toggle('s',SC.sel.has(+e.dataset.i)));
+ $('selinfo').textContent=pg&&pg.state==='done'?(SC.sel.size?SC.sel.size+' of '+pg.words.length+' words selected':'0 of '+pg.words.length+' selected (uses text box)'):'';}
+function bindBoxes(bx){let anchor=null,base=null,add=true,moved=false,down=null,lastTap={i:-1,t:0};
+ const wordAt=(x,y)=>{const e=document.elementFromPoint(x,y);return e&&e.classList&&e.classList.contains('w')&&bx.contains(e)?+e.dataset.i:null;};
+ bx.addEventListener('pointerdown',e=>{e.preventDefault();try{bx.setPointerCapture(e.pointerId);}catch(x){}down={x:e.clientX,y:e.clientY};moved=false;
+  anchor=wordAt(e.clientX,e.clientY);base=new Set(SC.sel);add=anchor==null||!SC.sel.has(anchor);});
+ bx.addEventListener('pointermove',e=>{if(!down)return;if(Math.hypot(e.clientX-down.x,e.clientY-down.y)<6&&!moved)return;const j=wordAt(e.clientX,e.clientY);if(j==null)return;
+  if(anchor==null){anchor=j;add=!SC.sel.has(j);}moved=true;const s=new Set(base);DeIDTx.wordRange(anchor,j).forEach(k=>add?s.add(k):s.delete(k));SC.sel=s;updSel();});
+ const up=e=>{if(!down)return;down=null;if(moved||anchor==null)return;const pg=SC.pages[SC.cur],now=Date.now();
+  if(lastTap.i===anchor&&now-lastTap.t<400){DeIDTx.lineOf(pg.words,anchor).forEach(k=>SC.sel.add(k));lastTap={i:-1,t:0};}
+  else{if(SC.sel.has(anchor))SC.sel.delete(anchor);else SC.sel.add(anchor);lastTap={i:anchor,t:now};}updSel();};
+ bx.addEventListener('pointerup',up);bx.addEventListener('pointercancel',()=>{down=null;});}
+async function addScanFiles(files){files=[].slice.call(files||[]);if(!files.length)return;openScan();
+ const imgs=files.filter(DeIDTx.isScanImage);if(imgs.length<files.length)say(files.some(f=>/pdf/i.test(f.type||f.name))?'PDF files cannot be read directly: take a screenshot of the page or export it as an image, then add that.':'Skipped a file that is not an image.',6000);
+ for(const f of imgs){let im;try{im=await loadImg(f);}catch(e){say('Could not open '+(f.name||'image')+' (try a JPEG/PNG screenshot)',5000);continue;}
+  const fit=DeIDTx.scanFit(im.naturalWidth||im.width,im.naturalHeight||im.height,2000);const src=document.createElement('canvas');src.width=fit.w;src.height=fit.h;
+  const x=src.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,fit.w,fit.h);x.imageSmoothingQuality='high';x.drawImage(im,0,0,fit.w,fit.h);im.src='';im=null;
+  const pg={src,canvas:drawRot(src,0,0,$('scanenh').checked),rot:0,words:[],text:'',conf:0,state:'queued'};SC.pages.push(pg);SC.sel.clear();showPage(SC.pages.length-1);queueRead(pg,true);}}
+function openScan(){$('scanv').classList.add('on');}
+function scanInsertText(pg,i,useSel){const t=useSel&&SC.sel.size?DeIDTx.wordsText(pg.words,SC.sel):$('scantext').value;return t;}
+function insertScan(list){let v=$('in').value,n=0;list.forEach(([text,num])=>{const nv=DeIDTx.scanInsert(v,text,num);if(nv!==v)n++;v=nv;});
+ if(!n){say('Nothing to insert yet',2000);return;}$('in').value=v;$('in').scrollTop=$('in').scrollHeight;go();say('Inserted '+n+' scanned page'+(n>1?'s':'')+' into the text box (de-identified)',3000);}
+$('scan').onclick=openScan;$('scanclose').onclick=()=>$('scanv').classList.remove('on');
+['scancam','scanpick'].forEach(id=>$(id).addEventListener('change',e=>{const f=[].slice.call(e.target.files||[]);e.target.value='';addScanFiles(f);}));
+$('scantext').addEventListener('input',()=>{const pg=SC.pages[SC.cur];if(pg)pg.text=$('scantext').value;});
+$('selall').onclick=()=>{const pg=SC.pages[SC.cur];if(!pg)return;SC.sel=new Set(pg.words.map(w=>w.i));updSel();};
+$('selnone').onclick=()=>{SC.sel.clear();updSel();};
+$('copysel').onclick=async()=>{const pg=SC.pages[SC.cur];if(!pg)return;const t=SC.sel.size?DeIDTx.wordsText(pg.words,SC.sel):$('scantext').value;if(!t.trim()){say('Nothing to copy',1500);return;}
+ await copyText(t);say('Copied '+(SC.sel.size?SC.sel.size+' words':'page text')+'. Contains identifiers: paste only into secure apps.',3000);};
+$('inssel').onclick=()=>{const pg=SC.pages[SC.cur];if(!pg)return;insertScan([[SC.sel.size?DeIDTx.wordsText(pg.words,SC.sel):$('scantext').value,SC.cur+1]]);};
+$('insall').onclick=()=>{insertScan(SC.pages.map((pg,i)=>[pg.text,i+1]));};
+const rot=d=>{const pg=SC.pages[SC.cur];if(!pg)return;pg.rot=((pg.rot+d)%360+360)%360;SC.sel.clear();queueRead(pg,false);};
+$('rotl').onclick=()=>rot(-90);$('rotr').onclick=()=>rot(90);$('rescan').onclick=()=>{const pg=SC.pages[SC.cur];if(pg){SC.sel.clear();queueRead(pg,false);}};
+$('scanenh').onchange=()=>{const pg=SC.pages[SC.cur];if(pg){SC.sel.clear();queueRead(pg,false);}};
+$('delpage').onclick=()=>{const i=SC.cur,pg=SC.pages[i];if(!pg)return;SC.pages.splice(i,1);freeCanvas(pg.src);freeCanvas(pg.canvas);pg.words=[];pg.text='';SC.sel.clear();showPage(Math.min(i,SC.pages.length-1));};
+document.addEventListener('paste',e=>{const fs=[].slice.call((e.clipboardData&&e.clipboardData.files)||[]).filter(DeIDTx.isScanImage);if(!fs.length)return;e.preventDefault();addScanFiles(fs);});
+const hasFiles=e=>e.dataTransfer&&[].indexOf.call(e.dataTransfer.types||[],'Files')>=0;
+window.addEventListener('dragover',e=>{if(!hasFiles(e))return;e.preventDefault();$('stage').classList.add('drag');});
+window.addEventListener('dragleave',e=>{if(!e.relatedTarget)$('stage').classList.remove('drag');});
+window.addEventListener('drop',e=>{if(!hasFiles(e))return;e.preventDefault();$('stage').classList.remove('drag');addScanFiles(e.dataTransfer.files);});
+function scanWipe(){SC.gen++;SC.pages.forEach(pg=>{freeCanvas(pg.src);freeCanvas(pg.canvas);pg.words=[];pg.text='';});SC.pages=[];SC.sel.clear();SC.pend=0;SC.q=Promise.resolve();
+ const w=SC.worker;SC.worker=null;SC.wp=null;if(w)try{w.terminate();}catch(e){} // the OCR worker's memory may hold the last image
+ $('scantext').value='';scanProg(null);showPage(-1);}
+renderStrip();
+
 // ---- wipe ----
 function wipe(){stopRec(true);try{ctl.abort();}catch(e){}ctl=new AbortController();failed=[];pending=0;queue=Promise.resolve();setTx();
  $('in').value='';$('out').value='';$('soap').value='';last={};render();guard('');lastGenSrc='';
  ['docid','prog'].forEach(id=>$(id).value='');$('progmode').checked=false;$('incphi').checked=false;document.querySelectorAll('[data-att]').forEach(c=>c.checked=false);
- ['pname','pmrn'].forEach(id=>{$(id).value='';$(id).dataset.dirty='';});$('malabel').value='';lastPatient={name:'',mrn:'',date:null};}
+ ['pname','pmrn'].forEach(id=>{$(id).value='';$(id).dataset.dirty='';});$('malabel').value='';lastPatient={name:'',mrn:'',date:null};banner('');scanWipe();}
 $('clear').onclick=wipe;
 window.addEventListener('pagehide',()=>{wipe();$('names').value='';});window.addEventListener('beforeunload',()=>{wipe();});
 if(!remember)try{localStorage.removeItem(LS);}catch(e){}
 if(!rememberInstr)try{localStorage.removeItem(PLS);}catch(e){}
-preloadMsal();
+preloadMsal();micStatus();
 })();
 </script>
 <script>if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(function(){});</script></body></html>
