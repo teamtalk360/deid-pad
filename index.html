@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="DeID Pad">
 <meta name="theme-color" content="#14324f"><link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-180.png">
-<meta name="referrer" content="no-referrer"><meta name="deidpad-version" content="1.2.0-scan-ocr"><title>DeID Pad</title>
+<meta name="referrer" content="no-referrer"><meta name="deidpad-version" content="1.3.0-draft"><title>DeID Pad</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font:14px system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f6f8;color:#1b2430;height:100vh;display:flex;flex-direction:column}
 header{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#14324f;color:#fff;flex-wrap:wrap}
@@ -32,6 +32,7 @@ textarea{flex:1;width:100%;resize:none;font:13px/1.45 ui-monospace,Menlo,Consola
 #settings input[type=text],#settings input[type=password],#settings input[type=number],#settings select,#settings textarea{width:100%;font-size:12px;padding:4px 6px;border:1px solid #b7c4d1;border-radius:4px}
 #settings textarea{min-height:52px;flex:none}.note{font-size:11px;color:#6b4b00;background:#fff4d6;padding:4px 8px;border-radius:4px;margin:4px 0}
 .hide{display:none!important}
+#draftstat{background:#e9f6ee;color:#1d5a32;border-bottom:1px solid #b9dfc6;font-size:12px;padding:3px 12px}#draftstat.err{background:#fde8e8;color:#8a1c1c;border-color:#f0b4b4}
 #guard{display:none;font-size:12px;border-radius:6px;padding:6px 8px;margin:0 0 4px;white-space:pre-wrap;max-height:30vh;overflow:auto}
 #guard.bad{display:block;background:#fde8e8;color:#8a1c1c;border:1px solid #f0b4b4}#guard.warn{display:block;background:#fff4d6;color:#6b4b00;border:1px solid #ecd58a}
 #guard button{margin-top:4px;font-size:11px;padding:2px 8px;min-height:0}
@@ -70,9 +71,10 @@ header{padding-top:max(8px,env(safe-area-inset-top))}
 <button type="button" class="p" id="copy">Copy output</button><button type="button" id="clear">Clear all</button><button type="button" id="tog">Show what was removed</button>
 <label><input type="checkbox" id="fac"> Remove facility names</label>
 <label><input type="checkbox" id="ai"> AI note</label>
-<label>Always remove: <input id="names" placeholder="comma-separated names (not saved)"></label>
+<label>Always remove: <input id="names" placeholder="comma-separated names (kept until Clear all)"></label>
 <button type="button" id="gear" title="Settings">&#9881; Settings</button><span id="msg" role="status"></span></header>
-<div class="warn">Rule-based, NOT a certified de-identification. Review the output before you share it. Nothing is stored on this device. Audio is sent only to the transcription backend you choose in Settings. Scanned images are read on this device only.</div>
+<div class="warn">Rule-based, NOT a certified de-identification. Review the output before you share it. Text you enter is saved on this device (browser storage) until you tap Clear all, so keep this device locked and encrypted, and tap Clear all on a shared computer. Audio is sent only to the transcription backend you choose in Settings. Scanned images are read on this device only.</div>
+<div id="draftstat" role="status">Text you enter is saved on this device until you tap Clear all.</div>
 <div id="txbanner" class="warn hide" role="status"></div>
 <div class="bar">
  <label>MA label <input id="malabel" maxlength="24" size="10" placeholder="e.g. Rm 3 / HW" autocomplete="off"></label><button type="button" id="sendma">Send to MA</button>
@@ -103,7 +105,7 @@ header{padding-top:max(8px,env(safe-area-inset-top))}
 <aside id="removed"></aside></main>
 
 <div id="scanv" role="dialog" aria-label="Scan document"><div class="scard">
-<div class="sbar"><b style="font-size:15px">Scan document</b><span class="small">Text recognition runs on this device. Images and text stay in memory only and are wiped by Clear all.</span><button type="button" id="scanclose" class="p">Done</button></div>
+<div class="sbar"><b style="font-size:15px">Scan document</b><span class="small">Text recognition runs on this device. Images stay in memory only (never saved). Text you insert into the text box is saved with the draft until Clear all.</span><button type="button" id="scanclose" class="p">Done</button></div>
 <div class="sbar">
  <label class="btn p" for="scancam">&#128247; Camera / add page</label><input type="file" id="scancam" class="vh" accept="image/*" capture="environment">
  <label class="btn" for="scanpick">Choose photo / image</label><input type="file" id="scanpick" class="vh" accept="image/*" multiple>
@@ -177,7 +179,9 @@ header{padding-top:max(8px,env(safe-area-inset-top))}
 </fieldset>
 <fieldset><legend>Device</legend>
  <label><input type="checkbox" id="remember"> Remember settings (including API keys and PIN) on this device</label>
- <div class="note">Warning: this saves keys in plain text in this browser's localStorage. Anyone who can use this browser profile can read them. Don't use it on shared workstations. Pasted text, transcripts and audio are never saved.</div>
+ <div class="note">Warning: this saves keys in plain text in this browser's localStorage. Anyone who can use this browser profile can read them. Don't use it on shared workstations.</div>
+ <div class="row"><span>Auto-clear saved draft</span><select id="autoclear"><option value="0">Off: keep until I tap Clear all</option><option value="1">after 1 hour without edits</option><option value="4">after 4 hours without edits</option><option value="8">after 8 hours without edits</option><option value="12">after 12 hours without edits</option><option value="24">after 24 hours without edits</option></select></div>
+ <div class="note">Entered text (both panes, dictation transcript, AI note, patient name/MRN, MA label, Document ID, always-remove list) is saved in this browser's storage so a refresh or relaunch doesn't lose it. It stays until you tap Clear all (or the auto-clear time above). Audio and scanned images are never saved: a recording in progress, held audio and scanned pages are lost on refresh. HIPAA: use this only on a device with a passcode/login and disk encryption (FileVault, iOS passcode).</div>
 </fieldset>
 <button type="button" class="p" id="closeset">Done</button>
 </div></div>
@@ -331,7 +335,7 @@ if(typeof module!=='undefined')module.exports=DeID;
 <script>
 /*TX-START*/
 // DeIDTx: pure request builders for Whisper transcription, AI SOAP / AI Note (guarded), Share-to-MA, save helper and OneDrive.
-// No storage, no logging. Usable in the browser and in Node 18+ (tests).
+// No storage I/O except the explicit draft helpers (given a Storage object), no logging. Usable in the browser and in Node 18+ (tests).
 var DeIDTx=(function(){
 const AZ_HOST=/^https:\/\/[a-z0-9][a-z0-9\-]*\.openai\.azure\.com$/i;
 const OPENAI='https://api.openai.com/v1';
@@ -638,7 +642,33 @@ function scanScore(words){const good=(words||[]).filter(w=>/[A-Za-z]{3,}/.test(w
 function meanConf(words){return words&&words.length?Math.round(words.reduce((a,w)=>a+w.conf,0)/words.length):0;}
 const SCAN_TYPES=/^image\/(png|jpe?g|gif|webp|bmp|heic|heif|avif|tiff?)$/i;
 const isScanImage=f=>!!f&&(SCAN_TYPES.test(f.type||'')||(!f.type&&/\.(png|jpe?g|gif|webp|bmp|heic|heif|avif|tiff?)$/i.test(f.name||'')));
-return {scanFit,grayContrast,ocrWords,wordsText,wordRange,lineOf,SCAN_SEP,scanInsert,scanScore,meanConf,isScanImage,EM_INSTRUCTIONS,TEMPLATES,ATTEST,complianceBlock,validDocId,buildNoteFilename,fillDocId,buildNoteBody,scrubResponse,toPlain,complianceCheck,generateGuardedNote,NOTE_INSTRUCTIONS,NOTE_GUARD,splitRefs,checkOutgoing,formatIssues,noteSystem,buildNoteRequest,parseNoteResponse,cleanNote,generateNote,isHelperHost,buildHelperSave,buildNoteFile,MIME,splitName,buildFilename,isoDate,graphScopes,buildGraphUpload,uploadToGraph,buildExportBody,makeDocx,crc32,containsPatient,DEFAULT_VOCAB,SOAP_SYSTEM,mimeExt,pickMime,validate,buildTranscriptionRequest,parseTranscription,transcribe,isNoise,buildChatRequest,formatSoap,isPrivateHost,buildShareRequest,encodeWav};
+// ---- Draft persistence (entered text survives refresh / tab discard / app relaunch until Clear all) ----
+// Only an explicit allowlist of text fields and checkboxes is stored. Never API keys, PINs, audio, images or OCR word boxes.
+const DRAFT_KEY='deidpad.draft.v1',DRAFT_PREFS_KEY='deidpad.draftprefs.v1',DRAFT_VER=1;
+const DRAFT_TEXT=['in','out','soap','names','pname','pmrn','malabel','docid','prog','lastGenSrc'];
+const DRAFT_BOOL=['pnameDirty','pmrnDirty','ai','fac','progmode','incphi','nhdr','att_externalRecords','att_imaging','att_procedure','att_coordination'];
+const DRAFT_CHOICE={tpl:/^(soap|em)$/,dest:/^(share|sharetext|helper|onedrive|download)$/,nfmt:/^(md|txt|docx)$/};
+const DRAFT_CONTENT=['in','out','soap','names','pname','pmrn','malabel','docid','prog'];
+const DRAFT_MAX=4e6; // stay well under the ~5 MB localStorage quota
+// Picks the allowlisted fields from a UI snapshot. Returns null when nothing was entered (so an empty pad stores nothing).
+function draftPick(s){s=s||{};const o={};
+ DRAFT_TEXT.forEach(k=>{if(typeof s[k]==='string'&&s[k])o[k]=s[k];});
+ DRAFT_BOOL.forEach(k=>{if(typeof s[k]==='boolean')o[k]=s[k];});
+ Object.keys(DRAFT_CHOICE).forEach(k=>{if(typeof s[k]==='string'&&DRAFT_CHOICE[k].test(s[k]))o[k]=s[k];});
+ return DRAFT_CONTENT.some(k=>o[k]&&String(o[k]).trim())?o:null;}
+// Serialized draft or null (nothing worth saving). savedAt = last change, used by the optional auto-clear.
+function packDraft(s,now){const st=draftPick(s);if(!st)return null;const j=JSON.stringify({v:DRAFT_VER,savedAt:+(now||Date.now()),state:st});
+ if(j.length>DRAFT_MAX)throw new Error('draft too large to save on this device');return j;}
+// Parses a stored draft. Returns {state,savedAt}, {expired:true} when older than autoClearHours (0/blank = never), or null.
+function unpackDraft(str,opt){opt=opt||{};if(!str)return null;let j;try{j=JSON.parse(str);}catch(e){return null;}
+ if(!j||j.v!==DRAFT_VER||!j.state||typeof j.state!=='object')return null;const h=+opt.autoClearHours||0,now=+(opt.now||Date.now());
+ if(h>0&&(!(+j.savedAt)||now-(+j.savedAt)>h*3600e3))return {expired:true,savedAt:+j.savedAt||0};
+ const st=draftPick(j.state);return st?{state:st,savedAt:+j.savedAt||0}:null;}
+// Removes every draft key (current and any older/foreign deidpad.draft* versions). Settings saved with "Remember" are kept.
+function clearDraft(store){if(!store)return 0;let n=0;try{const ks=[];for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&/^deidpad\.draft\.|^deidpad\.draft$/.test(k))ks.push(k);}
+ ks.forEach(k=>{store.removeItem(k);n++;});}catch(e){}return n;}
+function draftAutoClearHours(store){try{const j=JSON.parse(store.getItem(DRAFT_PREFS_KEY)||'{}');const h=+j.autoClearHours;return h>0&&h<=720?h:0;}catch(e){return 0;}}
+return {DRAFT_KEY,DRAFT_PREFS_KEY,DRAFT_TEXT,DRAFT_BOOL,draftPick,packDraft,unpackDraft,clearDraft,draftAutoClearHours,scanFit,grayContrast,ocrWords,wordsText,wordRange,lineOf,SCAN_SEP,scanInsert,scanScore,meanConf,isScanImage,EM_INSTRUCTIONS,TEMPLATES,ATTEST,complianceBlock,validDocId,buildNoteFilename,fillDocId,buildNoteBody,scrubResponse,toPlain,complianceCheck,generateGuardedNote,NOTE_INSTRUCTIONS,NOTE_GUARD,splitRefs,checkOutgoing,formatIssues,noteSystem,buildNoteRequest,parseNoteResponse,cleanNote,generateNote,isHelperHost,buildHelperSave,buildNoteFile,MIME,splitName,buildFilename,isoDate,graphScopes,buildGraphUpload,uploadToGraph,buildExportBody,makeDocx,crc32,containsPatient,DEFAULT_VOCAB,SOAP_SYSTEM,mimeExt,pickMime,validate,buildTranscriptionRequest,parseTranscription,transcribe,isNoise,buildChatRequest,formatSoap,isPrivateHost,buildShareRequest,encodeWav};
 })();
 if(typeof module!=='undefined')module.exports=DeIDTx;
 /*TX-END*/
@@ -646,6 +676,7 @@ if(typeof module!=='undefined')module.exports=DeIDTx;
 <script>
 (function(){
 const $=id=>document.getElementById(id);let tm,last={},lastPatient={name:'',mrn:'',date:null};
+let dtm=null,restoring=false,lastSig='',savedAt=0,saveErr='',autoH=0;
 const LS='deidpad.settings.v1';
 const DEF={backend:'azure',chunkSec:25,language:'en',vocab:DeIDTx.DEFAULT_VOCAB,chatProvider:'azure',
  note:{provider:'openai',api:'responses',model:'gpt-6.1-sol',effort:''},compat:{url:'',model:'',key:''},helper:{url:'',pin:''},
@@ -665,7 +696,7 @@ function go(){const r=DeID.run($('in').value,{alwaysRemove:$('names').value.spli
  $('out').value=$('in').value.trim()?r.text:'';last=r.removed;render();
  lastPatient=r.patient||lastPatient;
  if(!$('pname').dataset.dirty&&r.patient)$('pname').value=r.patient.name||'';
- if(!$('pmrn').dataset.dirty&&r.patient)$('pmrn').value=r.patient.mrn||'';}
+ if(!$('pmrn').dataset.dirty&&r.patient)$('pmrn').value=r.patient.mrn||'';saveSoon();}
 function render(){const el=$('removed');el.textContent='';const ks=Object.keys(last);
  if(!ks.length){el.textContent='Nothing detected.';return;}
  ks.forEach(k=>{const h=document.createElement('h3');h.textContent=k+' ('+last[k].length+')';el.appendChild(h);const ul=document.createElement('ul');
@@ -753,7 +784,7 @@ const patientNow=()=>({name:$('pname').value.trim(),mrn:$('pmrn').value.trim()})
 const alwaysList=()=>$('names').value.split(',').map(x=>x.trim()).filter(Boolean);
 function guard(kind,text,fixIssues){const g=$('guard');g.className=kind||'';g.textContent=text||'';
  if(fixIssues&&fixIssues.length){const b=document.createElement('button');b.textContent='Replace these in the de-identified pane with tokens';
-  b.onclick=()=>{let t=$('out').value;fixIssues.forEach(i=>{const tok=({'Names':'[NAME]','Dates':'[DATE]','Addresses':'[ADDRESS]','Phone/Fax':'[PHONE]','Emails':'[EMAIL]','URLs':'[URL]'})[i.category]||'[ID]';t=t.split(i.value).join(tok);});$('out').value=t;guard('warn','Replaced. Review the de-identified pane, then Generate note again.');};
+  b.onclick=()=>{let t=$('out').value;fixIssues.forEach(i=>{const tok=({'Names':'[NAME]','Dates':'[DATE]','Addresses':'[ADDRESS]','Phone/Fax':'[PHONE]','Emails':'[EMAIL]','URLs':'[URL]'})[i.category]||'[ID]';t=t.split(i.value).join(tok);});$('out').value=t;saveSoon();guard('warn','Replaced. Review the de-identified pane, then Generate note again.');};
   g.appendChild(document.createElement('br'));g.appendChild(b);}}
 function docIdErr(){const id=$('docid').value.trim();if(!id)return 'Enter a Document ID first (required).';if(!DeIDTx.validDocId(id))return 'Document ID: letters, digits, - or _ only (max 40).';
  const p=patientNow();if(p.mrn&&id.toLowerCase().includes(p.mrn.toLowerCase()))return 'Document ID must not contain the MRN.';
@@ -763,7 +794,7 @@ async function genSoap(){if($('gensoap').disabled)return;const deid=$('out').val
  const opt={template:tplKey(),instructions:curInstr(),references:prefs.refs,attest:attest(),progression:$('prog').value,progressionMode:$('progmode').checked,
   patient:patientNow(),alwaysRemove:alwaysList(),detect:DeID.detect,signal:ctl.signal};
  $('gensoap').disabled=true;say('Generating note…');guard('');
- try{const r=await DeIDTx.generateGuardedNote(cfg,deid,opt);lastGenSrc=deid;$('soap').value=DeIDTx.fillDocId(r.text,$('docid').value.trim());
+ try{const r=await DeIDTx.generateGuardedNote(cfg,deid,opt);lastGenSrc=deid;$('soap').value=DeIDTx.fillDocId(r.text,$('docid').value.trim());saveSoon();
   const msgs=[];if(r.redacted.length)msgs.push('Removed from the AI response (now tokens): '+r.redacted.map(i=>i.category+' "'+i.value+'"').join(', '));
   r.flags.forEach(f=>msgs.push((f.type==='attestation'?'Unconfirmed attestation: "':'Severity wording: "')+f.text+'" ('+f.why+'). Edit or remove it.'));
   guard(msgs.length?'warn':'',msgs.join('\n'));say('Note ready. Review it before saving.',3000);}
@@ -833,7 +864,7 @@ $('complete').onclick=()=>saveNote('onedrive');
 // ---- settings panel ----
 function syncBackend(){document.querySelectorAll('[data-b]').forEach(d=>d.classList.toggle('hide',d.dataset.b!==cfg.backend));document.querySelectorAll('[data-np]').forEach(d=>d.classList.toggle('hide',d.dataset.np!==cfg.note.provider));}
 function fillSettings(){document.querySelectorAll('#settings [data-k]').forEach(el=>{const v=getK(el.dataset.k);if(el.type==='checkbox')el.checked=!!v;else el.value=v==null?'':v;});
- $('remember').checked=remember;fillInstr();$('redir').textContent=/^https?:$/.test(location.protocol)?redirectUri():'(serve over http://localhost or https to use OneDrive export)';syncBackend();}
+ $('remember').checked=remember;$('autoclear').value=String(autoH);fillInstr();$('redir').textContent=/^https?:$/.test(location.protocol)?redirectUri():'(serve over http://localhost or https to use OneDrive export)';syncBackend();}
 document.querySelectorAll('#settings [data-k]').forEach(el=>{const h=()=>{let v=el.type==='checkbox'?el.checked:el.value;if(el.type==='number')v=+v||25;setK(el.dataset.k,v);syncBackend();persist();};el.addEventListener('input',h);el.addEventListener('change',h);});
 $('remember').onchange=()=>{if($('remember').checked&&!confirm('Save API keys and PIN in plain text in this browser? Only do this on your own, encrypted, password-locked device.')){$('remember').checked=false;return;}remember=$('remember').checked;persist();};
 function openSettings(){fillSettings();$('settings').classList.add('on');}
@@ -940,8 +971,44 @@ function wipe(){stopRec(true);try{ctl.abort();}catch(e){}ctl=new AbortController
  $('in').value='';$('out').value='';$('soap').value='';last={};render();guard('');lastGenSrc='';
  ['docid','prog'].forEach(id=>$(id).value='');$('progmode').checked=false;$('incphi').checked=false;document.querySelectorAll('[data-att]').forEach(c=>c.checked=false);
  ['pname','pmrn'].forEach(id=>{$(id).value='';$(id).dataset.dirty='';});$('malabel').value='';lastPatient={name:'',mrn:'',date:null};banner('');scanWipe();}
-$('clear').onclick=wipe;
-window.addEventListener('pagehide',()=>{wipe();$('names').value='';});window.addEventListener('beforeunload',()=>{wipe();});
+// ---- draft persistence: entered text survives refresh / tab discard / relaunch until Clear all ----
+// localStorage key deidpad.draft.v1, allowlisted fields only (DeIDTx.draftPick). No keys/PIN, audio, images or OCR boxes.
+function snap(){const s={};['in','out','soap','names','pname','pmrn','malabel','docid','prog'].forEach(k=>s[k]=$(k).value);s.lastGenSrc=lastGenSrc;
+ s.pnameDirty=!!$('pname').dataset.dirty;s.pmrnDirty=!!$('pmrn').dataset.dirty;['ai','fac','progmode','incphi','nhdr'].forEach(k=>s[k]=$(k).checked);
+ document.querySelectorAll('[data-att]').forEach(c=>s['att_'+c.dataset.att]=c.checked);s.tpl=$('tpl').value;s.dest=$('dest').value;s.nfmt=$('nfmt').value;return s;}
+const hhmm=t=>new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+function updDraftStat(){const el=$('draftstat');el.classList.toggle('err',!!saveErr);
+ el.textContent=saveErr?'Draft NOT saved on this device ('+saveErr+'). Copy your text before you refresh or close.':
+  savedAt?'Draft saved on this device ('+hhmm(savedAt)+'). Cleared only when you tap Clear all'+(autoH?' or after '+autoH+' h without edits':'')+'. Audio being recorded and scanned images cannot survive a refresh.':
+  'Text you enter is saved on this device until you tap Clear all'+(autoH?' (auto-clear after '+autoH+' h without edits)':'')+'.';}
+function saveNow(){clearTimeout(dtm);dtm=null;if(restoring)return;
+ try{const s=snap(),st=DeIDTx.draftPick(s),sig=st?JSON.stringify(st):'';if(sig===lastSig&&!saveErr)return;
+  if(!st)DeIDTx.clearDraft(localStorage);else localStorage.setItem(DeIDTx.DRAFT_KEY,DeIDTx.packDraft(s));lastSig=sig;savedAt=st?Date.now():0;saveErr='';}
+ catch(e){saveErr=/quota/i.test(e&&e.name||'')?'browser storage is full':(e&&e.message||'storage unavailable');}updDraftStat();}
+function saveSoon(){if(restoring)return;clearTimeout(dtm);dtm=setTimeout(saveNow,300);}
+['input','change'].forEach(ev=>document.addEventListener(ev,e=>{const t=e.target;if(t&&t.closest&&t.closest('#settings,#scanv'))return;saveSoon();},true));
+function restoreDraft(){autoH=DeIDTx.draftAutoClearHours(localStorage);let r=null;
+ try{r=DeIDTx.unpackDraft(localStorage.getItem(DeIDTx.DRAFT_KEY),{autoClearHours:autoH});}catch(e){r=null;}
+ if(r&&r.expired){DeIDTx.clearDraft(localStorage);say('Saved draft auto-cleared (no edits for '+autoH+' h)',6000);r=null;}
+ if(r&&r.state){const s=r.state;restoring=true;
+  try{['in','out','soap','names','pname','pmrn','malabel','docid','prog'].forEach(k=>{if(s[k]!=null)$(k).value=s[k];});
+   $('pname').dataset.dirty=s.pnameDirty?'1':'';$('pmrn').dataset.dirty=s.pmrnDirty?'1':'';
+   ['ai','fac','progmode','incphi','nhdr'].forEach(k=>{if(typeof s[k]==='boolean')$(k).checked=s[k];});
+   document.querySelectorAll('[data-att]').forEach(c=>{const v=s['att_'+c.dataset.att];if(typeof v==='boolean')c.checked=v;});
+   ['tpl','dest','nfmt'].forEach(k=>{if(s[k])$(k).value=s[k];});lastGenSrc=s.lastGenSrc||'';
+   $('soapsec').classList.toggle('hide',!$('ai').checked);
+   if($('in').value.trim()){go();if(s.out!=null)$('out').value=s.out;} // regenerate (removed panel, patient), keep any edits made in the output pane
+  }finally{restoring=false;}
+  lastSig=JSON.stringify(DeIDTx.draftPick(snap())||{});savedAt=r.savedAt||Date.now();if(DeIDTx.draftPick(snap()))saveNow();}
+ updDraftStat();}
+function clearAll(){clearTimeout(dtm);dtm=null;wipe();$('names').value='';DeIDTx.clearDraft(localStorage);lastSig='';savedAt=0;saveErr='';updDraftStat();}
+$('clear').onclick=()=>{clearAll();say('Cleared. Nothing is saved on this device.',2500);};
+$('autoclear').onchange=()=>{autoH=+$('autoclear').value||0;try{if(autoH)localStorage.setItem(DeIDTx.DRAFT_PREFS_KEY,JSON.stringify({autoClearHours:autoH}));else localStorage.removeItem(DeIDTx.DRAFT_PREFS_KEY);}catch(e){}updDraftStat();};
+setInterval(()=>{if(autoH>0&&savedAt&&Date.now()-savedAt>autoH*3600e3&&!active&&!pending){clearAll();say('Draft auto-cleared (no edits for '+autoH+' h)',6000);}},60000);
+// Refresh / close / tab switch: save immediately (no wiping). Warn only when something can't be saved (audio, held chunks, scanned images) or the save failed.
+window.addEventListener('pagehide',saveNow);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveNow();});
+window.addEventListener('beforeunload',e=>{saveNow();if(active||pending||failed.length||SC.pages.length||saveErr){e.preventDefault();e.returnValue='';return '';}});
+restoreDraft();
 if(!remember)try{localStorage.removeItem(LS);}catch(e){}
 if(!rememberInstr)try{localStorage.removeItem(PLS);}catch(e){}
 preloadMsal();micStatus();

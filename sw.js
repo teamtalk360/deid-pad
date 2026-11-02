@@ -1,8 +1,8 @@
 // Caches only the static app shell plus the on-device OCR files (vendor/tesseract, cached on first Scan).
-// Never caches or sees pasted text, scanned images, audio or API traffic (only same-origin GETs of app files are handled).
+// Never caches or sees pasted text, scanned images, audio or API traffic (the text draft lives in the page's localStorage, not here) (only same-origin GETs of app files are handled).
 // No skipWaiting(): a new version installs in the background and takes over on the next launch, so an open
 // session (recording, text present) is never reloaded or swapped mid-use.
-const C='deid-pad-v4-scan',SHELL=['./','index.html','manifest.webmanifest','icon-180.png','icon-192.png','icon-512.png','auth-redirect.html','auth-redirect.js','vendor/msal-browser.min.js','vendor/msal-redirect-bridge.min.js'];
+const C='deid-pad-v5-draft',SHELL=['./','index.html','manifest.webmanifest','icon-180.png','icon-192.png','icon-512.png','auth-redirect.html','auth-redirect.js','vendor/msal-browser.min.js','vendor/msal-redirect-bridge.min.js'];
 const OCR=/\/vendor\/tesseract\/[\w.\-]+$/;
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(SHELL)))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))))});
