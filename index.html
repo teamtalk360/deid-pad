@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="DeID Pad">
 <meta name="theme-color" content="#14324f"><link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-180.png">
-<meta name="referrer" content="no-referrer"><meta name="deidpad-version" content="1.3.0-draft"><title>DeID Pad</title>
+<meta name="referrer" content="no-referrer"><meta name="deidpad-version" content="1.4.0-queue"><title>DeID Pad</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font:14px system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f6f8;color:#1b2430;height:100vh;display:flex;flex-direction:column}
 header{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#14324f;color:#fff;flex-wrap:wrap}
@@ -39,6 +39,29 @@ textarea{flex:1;width:100%;resize:none;font:13px/1.45 ui-monospace,Menlo,Consola
 .ctl{display:flex;gap:6px 10px;flex-wrap:wrap;align-items:center;font-size:12px;margin:0 0 4px}.ctl select,.ctl input[type=text]{font-size:12px;padding:3px 5px;border:1px solid #b7c4d1;border-radius:4px}
 #docid:invalid,#docid.need{outline:2px solid #ffb3b3}
 #txbanner{background:#e8f3ff;color:#14324f;border-bottom:1px solid #b9d6f2}#micstat{font-size:11px;color:#cfe3ff}
+#qv{position:fixed;inset:0;background:#f4f6f8;display:none;z-index:7;overflow:auto;-webkit-overflow-scrolling:touch}#qv.on{display:block}body.qon{overflow:hidden}
+.qcard{max-width:1280px;margin:0 auto;padding:10px 14px 40px}.qtop{display:flex;gap:8px;align-items:center;flex-wrap:wrap;position:sticky;top:0;background:#f4f6f8;padding:6px 0;z-index:2}.qtop h2{margin:0 10px 0 0;font-size:18px;color:#14324f}
+.qbadge{background:#7a4b00;color:#fff;border-radius:4px;padding:3px 8px;font-size:12px;font-weight:700}.qsw{font-size:13px}#qmsg{font-size:13px;color:#0b6b3a;font-weight:600}
+.qban{background:#fff7e0;border:1px solid #e3c66b;border-radius:6px;padding:8px 10px;margin:6px 0;font-size:13px}.qinfo{background:#eaf2fb;border:1px solid #b9d0ea;border-radius:6px;padding:8px 10px;margin:6px 0;font-size:13px}
+.qerr{background:#fdecec;border:1px solid #e3a3a3;border-radius:6px;padding:8px 10px;margin:6px 0;font-size:13px;white-space:pre-wrap}.qlow{background:#fff1e0;border:1px solid #f0b46a;border-radius:6px;padding:8px 10px;margin:6px 0;font-size:13px;font-weight:600;color:#7a3e00}
+.qnd{background:#f3f0ff;border:1px solid #c9bdf0;border-radius:6px;padding:6px 10px;margin:6px 0;font-size:13px}.qwarn{color:#a02020;font-size:12px;font-weight:600}
+.qstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:8px 0}.qstat{background:#fff;border:1px solid #d5dde6;border-radius:8px;padding:8px 10px}.qk{font-size:12px;color:#5a6b7d}.qv{font-size:22px;font-weight:700;color:#14324f}
+.qbar{height:6px;background:#e3e9ef;border-radius:3px;margin-top:4px}.qbar i{display:block;height:100%;background:#2e8b57;border-radius:3px}
+.qchips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.chip{background:#fff;border:1px solid #b7c4d1;min-height:36px}.chip.on{background:#14324f;color:#fff;border-color:#14324f}
+.qtab{width:100%;border-collapse:collapse;background:#fff;border:1px solid #d5dde6;border-radius:8px;font-size:14px}.qtab th,.qtab td{padding:7px 8px;border-bottom:1px solid #e6ebf0;text-align:left;vertical-align:middle}.qtab th{font-size:12px;color:#5a6b7d}.qtab tr.done td{color:#7a8794;background:#fafbfc}.qtab td button{margin-right:4px}
+.qfake{font-size:10px;color:#7a4b00;font-weight:700}.pill{display:inline-block;border-radius:10px;padding:2px 8px;font-size:12px;font-weight:600;background:#e8eef5}.pill.ready{background:#dff3e6;color:#0b6b3a}.pill.needs{background:#fff1cc;color:#7a5600}.pill.lower{background:#ffe3cc;color:#8a3d00}.pill.error{background:#fdecec;color:#a02020}.pill.approved{background:#d6ecff;color:#0b4d8a}.pill.drafting{background:#eee;color:#555}.pill.done{background:#eef1f4;color:#5a6b7d}
+.qrow{display:grid;grid-template-columns:110px 1fr;gap:8px;align-items:center;margin:6px 0}.qrow input{font-size:16px;padding:6px 8px;border:1px solid #b7c4d1;border-radius:5px;width:12em}
+.qcols{display:grid;grid-template-columns:1fr 1fr;gap:12px}.qcols textarea{width:100%;min-height:240px;font:15px/1.4 system-ui,sans-serif;padding:8px;border:1px solid #b7c4d1;border-radius:6px}
+.qh{font-weight:700;font-size:13px;margin:8px 0 4px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.qheard{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;margin-top:4px;align-items:center}.hk{background:#eef1f4;border-radius:10px;padding:2px 8px;color:#5a6b7d}.hk.ok{background:#dff3e6;color:#0b6b3a}
+.qpre{white-space:pre-wrap;background:#fff;border:1px solid #d5dde6;border-radius:6px;padding:8px;font-size:12px;max-height:260px;overflow:auto}.qbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.qrevtop{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}.qrevtop b{font-size:16px;color:#14324f}.qtimer{font-weight:700;color:#0b6b3a;background:#dff3e6;border-radius:5px;padding:4px 8px}.qtimer.over{color:#8a3d00;background:#ffe3cc}
+.qrevcols{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:12px}#qnote{width:100%;min-height:520px;font:14px/1.45 ui-monospace,Menlo,monospace;padding:8px;border:1px solid #b7c4d1;border-radius:6px}#qnote[readonly]{background:#f4fbf6}
+.qbox{background:#fff;border:1px solid #d5dde6;border-radius:8px;padding:8px 10px;margin-bottom:10px}.qbox h4{margin:0 0 6px;font-size:14px;color:#14324f}
+.qgap{margin:6px 0;font-size:13px}.qgap input{width:100%;font-size:15px;padding:5px 7px;border:1px solid #b7c4d1;border-radius:5px;margin-top:3px}
+.qqual{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:4px 0;border-bottom:1px dashed #e0e6ec;font-size:13px}.qqual.ok .qph{color:#0b6b3a}.qqual.rm .qph{text-decoration:line-through;color:#888}.qph{font-weight:700}
+.qwt{width:100%;border-collapse:collapse;font-size:12px}.qwt th,.qwt td{border-bottom:1px solid #e6ebf0;padding:4px;text-align:left;vertical-align:top}.lvl{border-radius:4px;padding:1px 6px;font-weight:700;background:#eef1f4}.lvl.l4{background:#ffe3cc}.lvl.l3{background:#fff1cc}
+.qbig{margin:8px 0;font-size:13px}.qbig .code{font-size:20px;font-weight:800;color:#14324f}#qfinal{font-size:16px;padding:4px}#qpaste{margin:8px 0}#qpaste>button{margin:4px 4px 4px 0}#qapprove,#qcopyfinish{min-height:48px;font-size:16px}
+@media(max-width:820px){.qcols,.qrevcols{grid-template-columns:1fr}#qnote{min-height:340px}}
 #scanv{position:fixed;inset:0;background:rgba(10,20,30,.55);display:none;z-index:8;overflow:auto;-webkit-overflow-scrolling:touch}
 #scanv.on{display:block}#scanv .scard{background:#fff;max-width:1400px;margin:10px auto;border-radius:8px;padding:10px 12px;box-shadow:0 8px 30px rgba(0,0,0,.3)}
 .sbar{display:flex;gap:6px 8px;flex-wrap:wrap;align-items:center;margin:0 0 6px;font-size:12px}.small{font-size:11px;color:#5a6a7a}
@@ -72,7 +95,7 @@ header{padding-top:max(8px,env(safe-area-inset-top))}
 <label><input type="checkbox" id="fac"> Remove facility names</label>
 <label><input type="checkbox" id="ai"> AI note</label>
 <label>Always remove: <input id="names" placeholder="comma-separated names (kept until Clear all)"></label>
-<button type="button" id="gear" title="Settings">&#9881; Settings</button><span id="msg" role="status"></span></header>
+<button type="button" id="queue" class="ok" title="Batch review queue: one card per patient, AI draft, you review and paste">&#9776; Review queue</button><button type="button" id="gear" title="Settings">&#9881; Settings</button><span id="msg" role="status"></span></header>
 <div class="warn">Rule-based, NOT a certified de-identification. Review the output before you share it. Text you enter is saved on this device (browser storage) until you tap Clear all, so keep this device locked and encrypted, and tap Clear all on a shared computer. Audio is sent only to the transcription backend you choose in Settings. Scanned images are read on this device only.</div>
 <div id="draftstat" role="status">Text you enter is saved on this device until you tap Clear all.</div>
 <div id="txbanner" class="warn hide" role="status"></div>
@@ -123,6 +146,44 @@ header{padding-top:max(8px,env(safe-area-inset-top))}
  <div class="sbar" style="margin-top:6px"><button type="button" id="insall">Insert all pages</button><span class="small">Tap a word to select it, drag across words to select a range, double-tap selects the whole line. Orange boxes = low confidence: check them.</span></div>
 </div></div></div></div>
 
+<div id="qv" role="dialog" aria-label="Review queue"><div class="qcard">
+<div class="qtop"><h2>Review queue</h2><span id="qdemo" class="qbadge hide">DEMO · FAKE PATIENTS · NO AI CALLS</span>
+ <button type="button" id="qadd" class="p">+ Add patient</button><button type="button" id="qdraftall">Draft all waiting</button>
+ <label class="qsw"><input type="checkbox" id="qdemomode"> Demo mode (fake patients, no API key)</label><button type="button" id="qloaddemo" class="hide">Load 5 fake patients</button>
+ <button type="button" id="qset">&#9881; Queue settings</button><button type="button" id="qclose">Close</button><span id="qmsg" role="status"></span></div>
+<div class="qban">AI drafts only. Nothing goes into a chart until you open it, answer its questions, confirm its wording, approve it and paste it yourself. There is no "approve all" button, by design. Saved on this device until you finish each patient or tap Clear all.</div>
+<div id="qkeynote" class="qinfo hide">No OpenAI key yet: add one in Queue settings, or tick Demo mode to try the flow with fake patients.</div>
+<div id="qlist"><div id="qstats" class="qstats"></div><div id="qchips" class="qchips"></div>
+ <table class="qtab"><thead><tr><th>Case</th><th>Setting</th><th>Visit</th><th>Suggested level</th><th>To check</th><th>Status</th><th></th></tr></thead><tbody id="qtbody"></tbody></table>
+ <div id="qempty" class="qinfo">No patients yet. Tap <b>+ Add patient</b> after each visit (case label, setting, new/established, dictation), or tick Demo mode to load fake patients.</div></div>
+<div id="qcap" class="hide"><h3 id="qcaptitle">Add patient</h3>
+ <div class="qrow"><label for="qlabel">Case label</label><div><input id="qlabel" maxlength="16" autocomplete="off" placeholder="e.g. A-03 or Rm 4"> <span class="small">Short code with a number (A-03, Rm 4). No name, date of birth or MRN.</span><div id="qlabelwarn" class="qwarn"></div></div></div>
+ <div class="qrow"><span>Setting</span><div class="qchips" id="qsetting"><button type="button" class="chip" data-v="office">Office</button><button type="button" class="chip" data-v="hospA">Hospital A</button><button type="button" class="chip" data-v="hospB">Hospital B</button><button type="button" class="chip" data-v="nursing">Nursing home</button></div></div>
+ <div class="qrow"><span>Visit</span><div class="qchips" id="qvisit"><button type="button" class="chip" data-v="new">New patient</button><button type="button" class="chip" data-v="est">Established</button></div></div>
+ <div class="qcols"><div><div class="qh">Your dictation <button type="button" id="qfrompad">Use text from the main page</button></div>
+   <textarea id="qdict" spellcheck="false" placeholder="Dictate with your keyboard mic or paste. Say: new/established, each problem + status (stable, worsening, threat to limb), what you reviewed and from where, your decision, the exam, and time if you want time billing."></textarea>
+   <div id="qheard" class="qheard"></div></div>
+  <div><div class="qh">Outside report (optional) <button type="button" id="qscan">&#128247; Scan document</button></div>
+   <textarea id="qreport" spellcheck="false" placeholder="Paste outside records or a prior note, or scan a page. It is de-identified on this device before anything is sent."></textarea></div></div>
+ <details open><summary>What will be sent to the AI (de-identified on this device)</summary><pre id="qprev" class="qpre"></pre></details>
+ <div class="qbtns"><button type="button" id="qsavenext" class="p">Save &amp; add next patient</button><button type="button" id="qsavedraft" class="ok">Save &amp; back to queue</button><button type="button" id="qcapcancel">Cancel</button><button type="button" id="qcapdel" class="hide">Delete this patient</button></div></div>
+<div id="qrev" class="hide">
+ <div class="qrevtop"><button type="button" id="qrevback">&larr; Queue</button><b id="qrevtitle"></b><span id="qtimer" class="qtimer"></span><button type="button" id="qeditinputs">Edit dictation</button><button type="button" id="qredraft">Redraft</button></div>
+ <div class="qrevcols"><div class="qleft"><div id="qrevwarn"></div>
+   <label class="small" for="qnote">Draft note (edit freely; this is what gets copied)</label><textarea id="qnote" spellcheck="true"></textarea><div id="qnd"></div>
+   <details><summary>Codes, staff orders, patient instructions, referring letter (from the draft)</summary><div class="qh">Codes (coder to confirm)</div><pre id="qcodes" class="qpre"></pre><div class="qh">Staff orders</div><pre id="qorders" class="qpre"></pre><div class="qh">Patient instructions</div><pre id="qinstrout" class="qpre"></pre><div class="qh">Letter to referring doctor</div><pre id="qletter" class="qpre"></pre></details>
+   <details><summary>What was sent to the AI</summary><pre id="qsent" class="qpre"></pre></details></div>
+  <div class="qright">
+   <section class="qbox"><h4>1. Questions from the draft</h4><div id="qgaps"></div><button type="button" id="qredraftans">Redraft with my answers</button></section>
+   <section class="qbox"><h4>2. Confirm each status / risk word</h4><div class="small">Confirm only what you said or did. Remove anything you didn't.</div><div id="qquals"></div></section>
+   <section class="qbox"><h4>3. Why this level</h4><div id="qwhy"></div><details><summary>The AI draft's own reasoning</summary><pre id="qemwhy" class="qpre"></pre></details></section>
+   <section class="qbox"><h4>4. Approve, then paste</h4><div>Level you will bill: <select id="qfinal"></select></div><div id="qapprovewhy" class="small"></div>
+    <button type="button" id="qapprove" class="ok">Approve note</button><button type="button" id="qunapprove" class="hide">Edit again</button>
+    <div id="qpaste" class="hide"><button type="button" id="qcopyfinish" class="p">Copy note &amp; finish</button><button type="button" id="qfinish">Finish &amp; wipe this patient</button>
+     <div class="small">Or copy one section at a time:</div><div class="qchips"><button type="button" data-qcopy="hpi">Copy HPI</button><button type="button" data-qcopy="exam">Copy Exam</button><button type="button" data-qcopy="ap">Copy A/P + MDM</button><button type="button" data-qcopy="codes">Copy Codes</button><button type="button" data-qcopy="letter">Copy Letter</button><button type="button" data-qcopy="instructions">Copy Patient instructions</button><button type="button" data-qcopy="orders">Copy Orders</button></div></div>
+    <button type="button" id="qnextp">Next patient</button></section>
+  </div></div></div>
+</div></div>
 <div id="settings" role="dialog" aria-label="Settings"><div class="card">
 <h2 style="margin:0 0 6px;font-size:16px">Settings</h2>
 <div class="note">API keys and PINs are kept in memory only. They are cleared when you close the tab, unless you tick "Remember on this device" below.</div>
@@ -176,6 +237,18 @@ header{padding-top:max(8px,env(safe-area-inset-top))}
  <div class="row"><span>SharePoint drive ID (optional)</span><input type="text" data-k="m365.driveId" placeholder="blank = my OneDrive"></div>
  <div class="row"><span>File format</span><select data-k="m365.format"><option value="docx">.docx</option><option value="md">.md</option><option value="txt">.txt</option></select></div>
  <div class="row"><span>Redirect URI to register</span><code id="redir" style="font-size:11px;word-break:break-all"></code></div>
+</fieldset>
+<fieldset id="qsettings"><legend>Review queue: AI drafting (your own OpenAI key)</legend>
+ <div class="note">Used only by the Review queue. Only the de-identified text shown under "What will be sent" leaves this device, and a second check blocks the send if names, dates of birth, record numbers or phone numbers are still found. The key is kept in memory only, unless you tick "Remember settings" under Device. Leave the key blank to use the OpenAI key entered above for AI notes. Nothing here uses Microsoft/Azure.</div>
+ <div class="row"><span>OpenAI API key</span><input type="password" data-k="queue.key" autocomplete="off" placeholder="sk-... (blank = use the AI note OpenAI key)"></div>
+ <div class="row"><span>Endpoint</span><input type="text" data-k="queue.base" autocomplete="off" placeholder="https://api.openai.com/v1 (default)"></div>
+ <div class="row"><span>API style</span><select data-k="queue.api"><option value="responses">Responses API (store: false)</option><option value="chat">Chat Completions</option></select></div>
+ <div class="row"><span>Model</span><input type="text" data-k="queue.model" autocomplete="off" placeholder="gpt-6.1-sol"></div>
+ <div class="row"><span>Reasoning effort</span><select data-k="queue.effort"><option value="">Model default</option><option value="low">Low (faster)</option><option value="medium">Medium</option><option value="high">High</option></select></div>
+ <div class="row"><span>After copy</span><label><input type="checkbox" data-k="queue.wipeOnCopy"> Wipe a patient's text as soon as I copy the finished note</label></div>
+ <div class="row"><span>Drafting</span><label><input type="checkbox" data-k="queue.autoDraft"> Start the AI draft as soon as I save a patient</label></div>
+ <div class="row"><span>Drafting instructions (Appendix A)</span><textarea id="qinstr" spellcheck="false" style="min-height:180px"></textarea></div>
+ <div class="row"><span></span><span><button type="button" id="qinstrreset">Reset to Appendix A</button> <span class="small">Edits are saved on this device only if "Remember project instructions and references on this device" is ticked above.</span></span></div>
 </fieldset>
 <fieldset><legend>Device</legend>
  <label><input type="checkbox" id="remember"> Remember settings (including API keys and PIN) on this device</label>
@@ -674,6 +747,298 @@ if(typeof module!=='undefined')module.exports=DeIDTx;
 /*TX-END*/
 </script>
 <script>
+/*QUEUE-START*/
+// Review queue (Phase 1 batch). Pure logic, no DOM: card storage, the drafting request (Appendix A),
+// reply parsing, the on-device "Why this level" check, qualifier confirmation and the demo (mock) drafts.
+// Tests and demo mode use FAKE patients only.
+const DeIDQueue=(function(TX){
+'use strict';
+const KEY='deidpad.draft.queue.v1',VER=1,MAX=4e6,TARGET_SEC=180;
+const OPENAI='https://api.openai.com/v1';
+const SETTINGS={office:'Office',hospA:'Hospital A',hospB:'Hospital B',nursing:'Nursing home'};
+const VISITS={new:'New',est:'Established'};
+const APPENDIX_A=`ROLE
+You draft vascular surgery documentation for Dr. D. Bhaskar Rao (Vascular Specialists of Delaware) from: (a) his brief dictation, (b) de-identified outside records, and (c) a de-identified prior note he supplied. You never see the patient. He reviews, edits, and signs. Tokens like [NAME], [DATE], [PCP-1] must stay tokens.
+HONESTY RULES (override everything else)
+1. Use only facts in the input. Never invent symptoms, ROS, exam findings, results, counseling, time, or services.
+2. Any section not covered: write "Not documented." Never insert templated normal findings.
+3. Status/risk words (stable/at goal, not at goal, progressing, side effects, severe, threat to limb/life, major/minor, elective/emergency, named risk factors) only if dictated or clearly supported; list each in GAPS as "Confirm: ...".
+4. No copy-forward. Use the prior note only for PMH, medications, allergies, labelled "(per prior note)".
+5. Comorbidity, stroke-risk, or readmission-risk language goes in the A/P only if he addressed it (status+impact+action).
+6. Time statement only if minutes were dictated; exclude separately billed services and staff/AI time.
+7. Data counting: his own billed duplex/ABI reads = 0 data; outside images he personally reviewed (not billed by him) = independent interpretation; all notes from one source = 1 item; a lab panel = 1 test; live discussion = Cat 3.
+NOTE FORMAT (plain text, no markdown)
+Visit type and reason/referral · HPI · ROS · PMH · Medications · Allergies · Exam · Data reviewed (with sources) · Assessment and plan numbered by problem, each with status word, evidence, decision · Medication changes · Follow-up · MDM summary sentence · Time (if dictated) · Attestation: "Drafted with AI assistance from my dictation and records I supplied. I personally performed the services described, reviewed and edited this note, and attest that it is accurate and complete. — D. Bhaskar Rao, MD"
+AFTER THE NOTE, ADD THESE SECTIONS
+GAPS: at most 6 short questions, most important first (new/est; problems addressed; status confirmations; data source and whether he bills the read; risk decision: Rx, anticoagulation, major/minor + elective/emergency + risk factors, admission, SDOH; missing exam specifics such as ulcer depth; time).
+E/M WHY: table Problems | Data | Risk with evidence and level; suggested level by 2-of-3 MDM; level by time if minutes dictated; "What would change the level" in both directions; if support is weaker than a typical 99204/99214 or 99205/99215, say so and suggest the lower level. Never suggest adding words to raise a level.
+Office: 99202-99205 / 99212-99215. Inpatient: 99221-99223, 99231-99233, 99238/99239 (Medicare: no consult codes). Nursing facility: 99304-99306 / 99307-99310.
+CODES: ICD-10-CM and CPT suggestions with one-line reasons, marked "coder to confirm".
+ORDERS/FOLLOW-UP SUMMARY for staff. PATIENT INSTRUCTIONS at 6th-grade level. LETTER to PCP/referrer (brief).`;
+const ATTESTATION='Drafted with AI assistance from my dictation and records I supplied. I personally performed the services described, reviewed and edited this note, and attest that it is accurate and complete. — D. Bhaskar Rao, MD';
+// Section headings the app relies on (added after Appendix A; layout only, no new clinical rules).
+const FORMAT_RULE='\n\nLayout for this app: start each note section on its own line as "Heading: text" using these headings: Visit type and reason, HPI, ROS, PMH, Medications, Allergies, Exam, Data reviewed, Assessment and plan, Medication changes, Follow-up, MDM summary, Time, Attestation. Then put each after-note section on its own line starting exactly with GAPS:, E/M WHY:, CODES:, ORDERS/FOLLOW-UP SUMMARY:, PATIENT INSTRUCTIONS:, LETTER:. In E/M WHY include one line "Suggested level: 99xxx".';
+// The physician's own signature is not patient information: hide it from the leak detector only (text is sent unchanged).
+const SIGNER=[/D\.\s*Bhaskar\s+Rao(?:,\s*MD)?/g,/Bhaskar\s+Rao/g];
+const maskSigner=s=>SIGNER.reduce((t,re)=>t.replace(re,'[SIGNER]'),String(s||''));
+
+// ---------- codes ----------
+// MDM levels: 1 straightforward, 2 low, 3 moderate, 4 high
+const LV=['','Straightforward','Low','Moderate','High'];const DLV=['','Minimal','Limited','Moderate','Extensive'];const PLV=['','Minimal','Low','Moderate','High'];
+const FAM={
+ officeNew:{label:'Office, new patient',codes:[null,'99202','99202','99203','99204','99205'].slice(1),time:[[60,'99205'],[45,'99204'],[30,'99203'],[15,'99202']]},
+ officeEst:{label:'Office, established patient',codes:['99212','99212','99213','99214','99215'],time:[[40,'99215'],[30,'99214'],[20,'99213'],[10,'99212']]},
+ ipInit:{label:'Hospital, initial visit',codes:['99221','99221','99221','99222','99223'],time:[[75,'99223'],[55,'99222'],[40,'99221']]},
+ ipSub:{label:'Hospital, subsequent visit',codes:['99231','99231','99231','99232','99233'],time:[[50,'99233'],[35,'99232'],[25,'99231']]},
+ nfInit:{label:'Nursing facility, initial visit',codes:['99304','99304','99304','99305','99306'],time:[[45,'99306'],[35,'99305'],[25,'99304']]},
+ nfSub:{label:'Nursing facility, subsequent visit',codes:['99307','99307','99308','99309','99310'],time:[[45,'99310'],[30,'99309'],[15,'99308'],[10,'99307']]}};
+function family(setting,visit){const n=visit==='new';if(setting==='nursing')return n?'nfInit':'nfSub';if(setting==='hospA'||setting==='hospB')return n?'ipInit':'ipSub';return n?'officeNew':'officeEst';}
+const ALLCODES=Object.keys(FAM).reduce((o,k)=>{FAM[k].codes.concat(FAM[k].time.map(x=>x[1])).forEach(c=>o[c]=k);return o;},{});
+function codeRank(code,fam){const f=FAM[fam];if(!f)return -1;const c=String(code||'');const i=f.codes.lastIndexOf(c);return i<0?-1:f.codes.indexOf(c);}
+
+// ---------- on-device "Why this level" check (rule-based estimate, not coding advice) ----------
+const ABBR=/\b(Dr|Mr|Mrs|Ms|St|vs|approx|e\.g|i\.e)\./gi;
+const sentences=t=>String(t||'').replace(/\r/g,'').replace(ABBR,'$1\u2024').split(/(?<=[.!?])\s+|\n+/).map(s=>s.replace(/\u2024/g,'.').replace(/^[-*•\s]+/,'').trim()).filter(Boolean);
+const NEG=/\b(?:no|not|without|denies|negative for|never)\s+(?:\w+\s+){0,1}$/i;
+function find(text,re){const out=[];const g=new RegExp(re.source,re.flags.includes('g')?re.flags:re.flags+'g');let m;
+ while((m=g.exec(text))){if(!NEG.test(text.slice(Math.max(0,m.index-18),m.index)))out.push(m[0]);if(!m[0].length)g.lastIndex++;}return out;}
+const TESTS=[['BMP',/\bbmp\b|basic metabolic/i],['CMP',/\bcmp\b/i],['CBC',/\bcbc\b/i],['A1c',/\b(?:hb)?a1c\b/i],['Lipid panel',/\blipid(?:s| panel)?\b|\bldl\b/i],['Coags',/\bcoags?\b|\binr\b|\bptt\b/i],
+ ['Creatinine/eGFR',/\bcreatinine\b|\begfr\b/i],['Troponin',/\btroponin\b/i],['Culture',/\bcultures?\b/i],['ABI',/\babis?\b|ankle[- ]brachial/i],['Duplex',/\bduplex\b/i],['CTA',/\bcta\b|ct angiogra\w*/i],
+ ['MRA',/\bmra\b/i],['Angiogram',/(?<!\bct )\bangiogra(?:m|phy)\b[^.]{0,40}\b(?:images?|showed|shows|reviewed|results?)\b|\b(?:reviewed|outside)\b[^.]{0,30}\bangiogra(?:m|phy)\b/i],['X-ray',/\bx-?rays?\b/i],['Ultrasound',/\bultrasound\b/i],['Echo',/\becho(?:cardiogram)?\b/i]];
+const OWN_READ=/\bour (?:vascular )?(?:lab|office)\b|\bi read (?:it|them|the)\b|\bmy (?:own )?read\b|\bi (?:will )?bill\b|\bbilled by me\b|\bin[- ]office (?:duplex|abi)\b/i;
+const CAT2=/\b(?:personally|independently|myself)\s+(?:reviewed|interpreted|looked at|read)\b[^.]{0,60}\b(?:images?|films?|cta|ct|mra|angiogra\w*|duplex|study|studies|scan)\b|\breviewed the (?:outside |actual )?(?:images|films)\b/i;
+const CAT3=/\b(?:spoke|talked|discussed(?: the case| management| the plan)?|conferred|called)\s+(?:with|to)\s+(?:dr\b|the\s+(?:pcp|primary|cardiolog\w*|hospitalist|nephrolog\w*|podiatr\w*|referring|surgeon|intensivist|wound (?:care )?(?:doctor|physician))|\[(?:name|pcp)|\w+'s (?:pcp|cardiologist))/i;
+const HIST=/\bindependent historian\b|\bhistory (?:obtained |was obtained )?from (?:his|her|the) (?:wife|husband|daughter|son|caregiver|family|spouse)\b/i;
+const P_HIGH=/\bthreat(?:s|ens|ening)? to (?:the )?(?:limb|life)\b|\bsevere (?:exacerbation|progression)\b|\bthreat to bodily function\b/i;
+const P_MOD=/\bnot at goal\b|\buncontrolled\b|\bworsen(?:ing|ed)?\b|\bprogress(?:ing|ive|ed|ion)\b|\bside effects?\b|\bexacerbation\b|\bundiagnosed new problem\b|\bacute illness with systemic\b/i;
+const P_ANY=/\bstable\b|\bat goal\b|\bclaudication\b|\bstenosis\b|\bocclusion\b|\baneurysm\b|\bulcer\b|\bwound\b|\bvaricose\b|\bfollow[- ]?up\b|\bproblem\b|\bpain\b|\bpad\b|\bclti\b/i;
+const RX_CHANGE=/\b(?:start(?:ed|ing)?|stop(?:ped|ping)?|increas(?:e|ed|ing)|decreas(?:e|ed|ing)|chang(?:e|ed|ing)|switch(?:ed|ing)?|hold(?:ing)?|held|resum(?:e|ed|ing)|discontinu\w*|begin|initiat\w*|titrat\w*|add(?:ed|ing)?)\b[^.;]{0,50}\b(?:mg|statin|\w+statin|cilostazol|aspirin|clopidogrel|ticagrelor|apixaban|rivaroxaban|warfarin|heparin(?: drip)?|enoxaparin|anticoag\w*|antiplatelet|insulin|metformin|antibiotics?|cephalexin|doxycycline|cefazolin|vancomycin|medication|dose|prescription)\b/i;
+const R_HIGH=/\belective major\b[^.]{0,80}\brisk factors?\b|\bemergen(?:cy|t)\b[^.]{0,30}\b(?:major )?(?:surgery|procedure|operation|thrombectomy|bypass|amputation|repair)\b|\bdecision (?:to|regarding|about) (?:admit|admission|hospitali[sz]ation)\b|\bwill admit\b|\badmit (?:to|for)\b|\bdnr\b|\bde-?escalat\w*\b|\bhospice\b|\bcomfort care\b|\bintensive monitoring\b/i;
+const R_MOD=/\belective major\b|\bminor (?:surgery|procedure)\b[^.]{0,60}\brisk factors?\b|\bsocial determinants\b|\bsdoh\b|\bcannot afford\b|\bno transportation\b/i;
+const R_LOW=/\bcontinue\b|\bfollow[- ]?up\b|\breturn\b|\brecheck\b|\brepeat\b|\bcompression\b|\bwalking\b|\bexercise\b|\bover[- ]the[- ]counter\b|\botc\b|\bwound care\b|\bsee (?:back|again)\b/i;
+const MIN=/\b(\d{1,3})\s*(?:min(?:ute)?s?)\b/i;
+function stripPhrases(text,removed){let t=String(text||'');(removed||[]).forEach(p=>{if(!p)return;t=t.replace(new RegExp('\\b'+String(p).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi'),' ');});return t;}
+function dictatedCode(text){const t=String(text||'');const m=t.match(/\b99(?:2[0-3]\d|30[4-9]|310)\b/);if(m)return m[0];return '';}
+function dictatedLevel(text){const m=String(text||'').match(/\blevel (one|two|three|four|five|[1-5])\b/i);if(!m)return 0;return ({one:1,two:2,three:3,four:4,five:5})[m[1].toLowerCase()]||+m[1];}
+// text = de-identified dictation (+ outside report). opt={setting,visit,removed:[phrases he did not confirm]}
+function emCheck(text,opt){opt=opt||{};const fam=family(opt.setting,opt.visit);const src=stripPhrases(text,opt.removed);const ss=sentences(src);const low=src.toLowerCase();
+ // Problems
+ const pr={level:1,why:[]};const ph=find(src,P_HIGH),pm=find(src,P_MOD);const probs=new Set((low.match(/\bproblem (?:one|two|three|four|five|[1-5])\b/g)||[]));
+ if(ph.length){pr.level=4;pr.why.push('"'+ph[0]+'" dictated');}
+ else if(pm.length){pr.level=3;pr.why.push('"'+pm[0]+'" dictated (chronic problem not at goal / progressing, or similar)');}
+ else if(probs.size>=2){pr.level=3;pr.why.push(probs.size+' chronic problems addressed');}
+ else if(P_ANY.test(src)){pr.level=2;pr.why.push('one problem addressed'+(/\bstable\b|\bat goal\b/i.test(src)?' (stable / at goal)':''));}
+ else pr.why.push('no problem status found in the dictation');
+ // Data
+ const excluded=new Set(),tests=new Set();ss.forEach(s=>{TESTS.forEach(([n,re])=>{if(re.test(s)){if(OWN_READ.test(s))excluded.add(n);else tests.add(n);}});});
+ excluded.forEach(n=>tests.delete(n));
+ const srcs=new Set();ss.forEach(s=>{const re=/\b([a-z\[\]\-0-9]+)\s+(?:notes?|records?|consult note|discharge summary|letter)\b/ig;let m;while((m=re.exec(s))){const w=m[1].toLowerCase();if(!/^(the|his|her|their|my|our|no|any|all)$/.test(w))srcs.add(w);else srcs.add('notes');}});
+ const hist=HIST.test(src),c2=CAT2.test(src)&&!OWN_READ.test((src.match(CAT2)||[''])[0]),c3=CAT3.test(src);
+ const cat1=Math.min(srcs.size,3)+tests.size+(hist?1:0);
+ const dt={level:1,why:[],tests:[...tests],excluded:[...excluded],sources:[...srcs]};
+ if(srcs.size)dt.why.push('notes from '+srcs.size+' source'+(srcs.size>1?'s':'')+' ('+[...srcs].join(', ')+')');
+ if(tests.size)dt.why.push('tests: '+[...tests].join(', '));if(excluded.size)dt.why.push('not counted (your own billed read): '+[...excluded].join(', '));
+ if(hist)dt.why.push('independent historian');if(c2)dt.why.push('independent review of outside images');if(c3)dt.why.push('discussion with another clinician');
+ const met=(cat1>=3?1:0)+(c2?1:0)+(c3?1:0);dt.level=met>=2?4:met>=1?3:(cat1>=2||hist)?2:1;if(!dt.why.length)dt.why.push('no data review dictated');
+ // Risk
+ const rk={level:1,why:[]};const rh=find(src,R_HIGH),rx=find(src,RX_CHANGE),rm=find(src,R_MOD),rl=find(src,R_LOW);
+ if(rh.length){rk.level=4;rk.why.push('"'+rh[0]+'"');}
+ else if(rx.length||rm.length){rk.level=3;rk.why.push(rx.length?'prescription drug change: "'+rx[0]+'"':'"'+rm[0]+'"');}
+ else if(rl.length){rk.level=2;rk.why.push('"'+rl[0]+'" (no prescription change or procedure decision dictated)');}
+ else rk.why.push('no risk decision dictated');
+ const lv=[pr.level,dt.level,rk.level].sort((a,b)=>b-a);const mdm=lv[1];const f=FAM[fam];const mdmCode=f.codes[mdm];
+ const mm=src.match(MIN);const minutes=mm?+mm[1]:0;let timeCode='';if(minutes)for(const [m,c] of f.time){if(minutes>=m){timeCode=c;break;}}
+ const code=timeCode&&f.codes.indexOf(timeCode)>f.codes.indexOf(mdmCode)?timeCode:mdmCode;
+ return {family:fam,familyLabel:f.label,problems:pr,data:dt,risk:rk,mdm,mdmLabel:LV[mdm],mdmCode,minutes,timeCode,code,basis:code===mdmCode?'MDM':'time',
+  dictatedCode:dictatedCode(text),dictatedLevel:dictatedLevel(text)};}
+// Compares the AI's suggested code (and any level he dictated) with the on-device estimate.
+function levelAdvice(local,aiCode){const f=FAM[local.family];const out={lower:false,msgs:[],suggest:local.code};const li=f.codes.indexOf(local.code);
+ const chk=(c,who)=>{const i=f.codes.indexOf(c);if(i<0){if(c&&ALLCODES[c]&&ALLCODES[c]!==local.family)out.msgs.push(who+' '+c+' is not a '+f.label.toLowerCase()+' code. Check the setting and new/established.');return;}
+  if(i>li){out.lower=true;out.msgs.push(who+' '+c+', but the dictation supports about '+local.code+'. Suggest the lower level, '+local.code+'.');}};
+ chk(String(aiCode||''),'The AI draft says');
+ if(local.dictatedCode)chk(local.dictatedCode,'You dictated');
+ else if(local.dictatedLevel){const c=f.codes[Math.min(4,Math.max(0,local.dictatedLevel-1))];if(/^99(?:2[01]|3[0-3])/.test(c)&&(local.family==='officeNew'||local.family==='officeEst')){const c2=(local.family==='officeNew'?'9920':'9921')+local.dictatedLevel;chk(c2,'You dictated "level '+local.dictatedLevel+'" =');}}
+ if(out.lower&&/9920[45]|9921[45]/.test(out.msgs.join(' ')))out.msgs.push('Support looks weaker than a typical '+out.msgs.join(' ').match(/9920[45]|9921[45]/)[0]+'.');
+ return out;}
+// "What would change the level": only the downward direction is computed (the app never suggests wording to raise a level).
+function levelDrops(text,opt,quals){const base=emCheck(text,opt);const out=[];
+ (quals||[]).forEach(q=>{const r=emCheck(text,Object.assign({},opt,{removed:(opt.removed||[]).concat([q])}));if(r.code!==base.code)out.push('If "'+q+'" is not confirmed, the level drops to '+r.code+' ('+r.mdmLabel+' MDM).');});
+ if(base.basis==='time')out.push('Without the dictated time, MDM alone supports '+base.mdmCode+'.');
+ return out;}
+
+// ---------- qualifiers (status / risk words he must confirm) ----------
+const QUALS=[/\bnot at goal\b/i,/\bat goal\b/i,/\bstable\b/i,/\bprogress(?:ing|ive|ed|ion)\b/i,/\bworsening\b/i,/\buncontrolled\b/i,/\bside effects?\b/i,/\bsevere\b/i,/\bexacerbation\b/i,
+ /\bthreat to (?:limb|life)\b/i,/\belective major\b/i,/\bmajor\b/i,/\bminor\b/i,/\belective\b/i,/\bemergen(?:cy|t)\b/i,/\burgent\b/i,/\brisk factors?\b/i];
+function noteBody(note){return String(note||'').split(/^\s*(?:GAPS|E\/M WHY|CODES|ORDERS\/FOLLOW-UP SUMMARY|PATIENT INSTRUCTIONS|LETTER)\s*:/im)[0].replace(/^\s*Attestation:.*$/im,'');}
+function findQualifiers(note,source){const body=noteBody(note);const src=String(source||'').toLowerCase();const taken=[];const out=[];const seen=new Set();
+ QUALS.forEach(re=>{const g=new RegExp(re.source,'gi');let m;while((m=g.exec(body))){const s=m.index,e=s+m[0].length;if(taken.some(([a,b])=>s<b&&e>a))continue;taken.push([s,e]);
+  const p=m[0].toLowerCase();if(seen.has(p))continue;seen.add(p);out.push({phrase:p,inDictation:new RegExp('\\b'+p.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i').test(src)});}});
+ return out;}
+// Removes an unconfirmed qualifier from the note text (note part only; the after-note sections are left alone).
+function removeQualifier(note,phrase){const t=String(note||'');const m=t.match(/^\s*(?:GAPS|E\/M WHY|CODES|ORDERS\/FOLLOW-UP SUMMARY|PATIENT INSTRUCTIONS|LETTER)\s*:/im);const cut=m?m.index:t.length;
+ const re=new RegExp('\\s*\\b'+String(phrase).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi');
+ const body=t.slice(0,cut).split('\n').map(l=>/^\s*Attestation:/i.test(l)?l:l.replace(re,'').replace(/\(\s*\)/g,'').replace(/,\s*,/g,',').replace(/:\s*,\s*/g,': ').replace(/ {2,}/g,' ').replace(/\s+([.,;])/g,'$1')).join('\n');
+ return body+t.slice(cut);}
+
+// ---------- reply parsing ----------
+const AFTER=[['gaps','GAPS'],['emWhy','E/M WHY'],['codes','CODES'],['orders','ORDERS/FOLLOW-UP SUMMARY'],['instructions','PATIENT INSTRUCTIONS'],['letter','LETTER']];
+function parseReply(text){const t=String(text||'').replace(/\r\n?/g,'\n');const re=/^\s*(GAPS|E\/M WHY|CODES|ORDERS\/FOLLOW-UP SUMMARY|ORDERS|PATIENT INSTRUCTIONS|LETTER)\s*:?[ \t]*/gim;
+ const marks=[];let m;while((m=re.exec(t)))marks.push({k:m[1].toUpperCase(),i:m.index,j:m.index+m[0].length});
+ const out={note:(marks.length?t.slice(0,marks[0].i):t).trim(),gaps:[],emWhy:'',codes:'',orders:'',instructions:'',letter:'',aiCode:''};
+ marks.forEach((mk,ix)=>{const body=t.slice(mk.j,ix+1<marks.length?marks[ix+1].i:t.length).trim();const k=mk.k==='ORDERS'?'ORDERS/FOLLOW-UP SUMMARY':mk.k;const name=(AFTER.find(a=>a[1]===k)||[])[0];if(name&&!out[name+'_'])out[name]=name==='gaps'?body:body;});
+ out.gaps=String(out.gaps||'').split('\n').map(l=>l.replace(/^\s*(?:[-*•]|\d+[.)])\s*/,'').trim()).filter(Boolean).slice(0,6);
+ const sl=out.note.match(/^\s*Suggested (?:level|code)\s*:\s*(99\d{3})\b/im)||out.emWhy.match(/suggested (?:level|code)[^\n]*?\b(99\d{3})\b/i)||out.emWhy.match(/\b(99(?:2[0-3]\d|30[4-9]|310))\b/)||out.codes.match(/\b(99(?:2[0-3]\d|30[4-9]|310))\b/);out.aiCode=sl?sl[1]:'';
+ return out;}
+const HEADS=['Visit type(?: and reason)?(?:/referral)?','Reason(?: for (?:visit|referral))?','HPI','ROS','PMH','Past medical history','Medications','Allergies','Exam','Physical exam','Data reviewed','Assessment and plan','Assessment & plan','A/P','Medication changes','Follow-up','MDM summary','MDM','Time','Attestation'];
+const HEAD_RE=new RegExp('^\\s*(?:'+HEADS.join('|')+')\\b[^:\\n]{0,40}:','im');
+const REQUIRED=['HPI','ROS','PMH','Medications','Allergies','Exam','Data reviewed','Assessment and plan','Medication changes','Follow-up','MDM','Attestation'];
+function hasHead(note,h){return new RegExp('^\\s*'+h.replace(/[/]/g,'\\/')+'\\b[^:\\n]{0,40}:','im').test(noteBody(note)+(/^\s*Attestation:/im.test(note)?'\nAttestation:':''));}
+function missingSections(note){return REQUIRED.filter(h=>!hasHead(note,h)&&!(h==='Assessment and plan'&&/^\s*(?:A\/P|Assessment & plan)\b/im.test(note))&&!(h==='Exam'&&/^\s*Physical exam\b/im.test(note))&&!(h==='PMH'&&/^\s*Past medical history\b/im.test(note)));}
+function notDocumented(note){const out=[];noteBody(note).split('\n').forEach(l=>{const m=l.match(/^\s*([A-Za-z][A-Za-z /&-]{1,40}):\s*Not documented\.?\s*$/i);if(m)out.push(m[1].trim());});return out;}
+function addNotDocumented(note,missing){if(!missing||!missing.length)return note;const t=String(note||'');const m=t.match(/^\s*Attestation:/im);const add=missing.filter(h=>h!=='Attestation').map(h=>h+': Not documented.').join('\n');
+ let r=m?t.slice(0,m.index).replace(/\s*$/,'\n')+add+'\n'+t.slice(m.index).replace(/^\s*/,''):t.replace(/\s*$/,'\n')+add;
+ if(missing.includes('Attestation'))r=r.replace(/\s*$/,'\nAttestation: '+ATTESTATION);return r;}
+// Copy rows on the paste step. key -> heading list
+const COPY={hpi:['HPI'],exam:['Exam','Physical exam'],ap:['Assessment and plan','Assessment & plan','A/P','Medication changes','Follow-up','MDM summary','MDM','Time']};
+function extractSections(note,heads){const lines=String(note||'').split('\n');const out=[];let on=false;
+ lines.forEach(l=>{const isHead=HEAD_RE.test(l)&&/^\s*[A-Za-z][^:]{0,60}:/.test(l);if(isHead)on=heads.some(h=>new RegExp('^\\s*'+h.replace(/[/&]/g,'\\$&')+'\\b','i').test(l));if(on)out.push(l);});
+ return out.join('\n').trim();}
+
+// ---------- drafting request (user's own OpenAI key; no Microsoft/Azure path in the queue) ----------
+function queueBase(q){const b=String((q&&q.base)||'').trim().replace(/\/+$/,'')||OPENAI;
+ if(!(/^https:\/\//i.test(b)||/^http:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?(?:\/|$)/i.test(b)))throw new Error('Endpoint must start with https:// (or http://127.0.0.1 / localhost for a server on this computer).');
+ if(/\.openai\.azure\.com|\.microsoft\.com|\.azure\./i.test(b))throw new Error('The review queue does not use Microsoft/Azure endpoints. Use api.openai.com or your own OpenAI-compatible server.');
+ return b.replace(/\/(?:responses|chat\/completions)$/,'');}
+function caseHeader(card){const fam=FAM[family(card.setting,card.visit)];
+ return 'CASE: '+(card.label||'(no label)')+'\nSETTING: '+(SETTINGS[card.setting]||'Office')+'\nVISIT: '+(VISITS[card.visit]||'Established')+' patient\nCODE SET: '+fam.label+' ('+fam.codes.filter((c,i,a)=>a.indexOf(c)===i).join(', ')+')';}
+function answersText(card){const a=card.answers||{},g=card.gaps||[];const lines=[];g.forEach((q,i)=>{const v=String(a[i]||'').trim();if(v)lines.push('Q: '+q+'\nA: '+v);});return lines.join('\n');}
+function buildQueueInput(card){const parts=[caseHeader(card),'DICTATION (de-identified):\n'+(String(card.dDict||'').trim()||'(none)')];
+ if(String(card.dReport||'').trim())parts.push('OUTSIDE RECORDS / PRIOR NOTE (de-identified):\n'+card.dReport.trim());
+ const a=answersText(card);if(a)parts.push("PHYSICIAN'S ANSWERS TO THE EARLIER GAP QUESTIONS (facts from him; use them):\n"+a);
+ return parts.join('\n\n');}
+const REASONING=/^(?:o\d|gpt-5|gpt-6|gpt-7)/i;
+// q={key,base,api('responses'|'chat'),model,effort,instructions}. opt={detect,alwaysRemove,signal}. Throws GuardError before building anything if identifiers remain.
+function buildQueueRequest(q,card,opt){q=q||{};opt=opt||{};const input=buildQueueInput(card);if(!String(card.dDict||'').trim()&&!String(card.dReport||'').trim())throw new Error('Nothing to draft: add a dictation first.');
+ const instr=(String(q.instructions||'').trim()||APPENDIX_A);
+ const parts=[{where:'Case label',text:card.label||''},{where:'Dictation',text:card.dDict||''},{where:'Outside report',text:card.dReport||''},{where:'Your answers',text:answersText(card)},{where:'Instructions',text:maskSigner(instr)}];
+ const issues=TX.checkOutgoing(parts,{detect:opt.detect,alwaysRemove:opt.alwaysRemove});if(issues.length)throw TX_GuardError(issues);
+ const base=queueBase(q);const isOpenAI=base===OPENAI;const key=String(q.key||'').trim();if(isOpenAI&&!key)throw new Error('Add your OpenAI API key in Settings > Review queue, or turn on Demo mode.');
+ const model=String(q.model||'gpt-6.1-sol').trim();const kind=q.api==='chat'?'chat':'responses';const sys=instr+FORMAT_RULE+TX.NOTE_GUARD;
+ const headers={'Content-Type':'application/json'};if(key)headers.Authorization='Bearer '+key;
+ let body;if(kind==='responses'){body={model,instructions:sys,input:[{role:'user',content:[{type:'input_text',text:input}]}],store:false};if(q.effort&&REASONING.test(model))body.reasoning={effort:q.effort};}
+ else{body={model,messages:[{role:'system',content:sys},{role:'user',content:input}]};if(isOpenAI)body.store=false;}
+ return {url:base+(kind==='chat'?'/chat/completions':'/responses'),kind,input,init:{method:'POST',headers,body:JSON.stringify(body),signal:opt.signal,cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'}};}
+function TX_GuardError(issues){const e=new Error('Blocked: identifiers detected in outgoing text. Nothing was sent.');e.name='GuardError';e.issues=issues;return e;}
+async function readErr(res){let t='';try{t=await res.text();}catch(e){}let m=t;try{const j=JSON.parse(t);m=(j.error&&(j.error.message||j.error))||t;}catch(e){}return 'HTTP '+res.status+(m?': '+String(m).slice(0,300):'');}
+// Scrubs the reply (identifiers -> tokens), keeps the physician's own signature.
+function scrubReply(text,opt){opt=opt||{};const keep=[];let t=String(text||'').replace(/D\.\s*Bhaskar\s+Rao(?:,\s*MD)?|Bhaskar\s+Rao/g,m=>{keep.push(m);return '[SIGNER'+(keep.length-1)+']';});
+ const r=TX.scrubResponse(t,{detect:opt.detect,alwaysRemove:opt.alwaysRemove});return {text:r.text.replace(/\[SIGNER(\d+)\]/g,(m,i)=>keep[+i]||m),flagged:r.flagged};}
+async function draftCard(q,card,opt,fetchImpl){opt=opt||{};const r=buildQueueRequest(q,card,opt);const res=await (fetchImpl||fetch)(r.url,r.init);if(!res.ok)throw new Error(await readErr(res));
+ const raw=TX.cleanNote(TX.toPlain(TX.parseNoteResponse(await res.json())));if(!raw)throw new Error('The AI returned an empty draft.');const s=scrubReply(raw,opt);return {text:s.text,flagged:s.flagged};}
+
+// ---------- demo mode: local mock drafts (no network). Reorganises only what was dictated. ----------
+const ICD=[[/rest pain/i,'I70.22- PAD of native arteries with rest pain (side to confirm)'],[/\b(?:ulcer|wound|gangrene)\b/i,'I70.23-/I70.24- PAD with ulceration (site, side and depth to confirm)'],
+ [/claudication/i,'I70.21- PAD of native arteries with intermittent claudication (side to confirm)'],[/carotid|\bica\b/i,'I65.2- Occlusion and stenosis of carotid artery (side to confirm)'],
+ [/aneurysm|\baaa\b/i,'I71.4- Abdominal aortic aneurysm without rupture'],[/cold (?:left |right )?(?:foot|leg)|thromb|embol/i,'I74.3 Embolism and thrombosis of arteries of the lower extremities (confirm)'],
+ [/pressure ulcer|pressure injury/i,'L89.- Pressure ulcer (site and stage to confirm)'],[/cellulitis/i,'L03.11- Cellulitis of lower limb (side to confirm)'],
+ [/diabet/i,'E11.51 Type 2 diabetes with peripheral angiopathy (only if addressed)'],[/\bckd\b/i,'N18.- Chronic kidney disease (stage to confirm, only if addressed)'],
+ [/\bsmok/i,'F17.210 Nicotine dependence, cigarettes (only if current and addressed)'],[/\bldl\b|lipid|statin/i,'E78.5 Hyperlipidemia (only if addressed)'],[/atrial fib/i,'I48.91 Atrial fibrillation (only if addressed)']];
+const isExam=s=>/\bexam\b|\bpulses?\b|\bpalpable\b|\bdoppler\b|\bedema\b|\bincision\b|\bbruit\b|\bwarm\b|\bcool\b|\bmotor\b|\bsensation\b|\bslough\b|\b\d+(?:\.\d+)?\s*cm\b/i.test(s)&&!/\breviewed\b/i.test(s);
+const isData=s=>/\breviewed\b|\bspoke\b|\bdiscussed with\b|\btalked with\b|\bresults?\b/i.test(s)||(TESTS.some(([n,re])=>re.test(s))&&!/\b(?:repeat|order|schedule|plan|follow[- ]?up|return|start|continue|increase|decrease|stop)\b/i.test(s));
+const isVisit=s=>s.length<60&&/^(?:(?:new|established)(?: patient)?|nursing home visit|office visit|hospital \w+ inpatient consult|inpatient consult)\b[^.]{0,30}\.?$/i.test(s);
+function reportSection(rep,re){const ls=String(rep||'').split('\n');const out=[];let on=false;const H=/^\s*(?:#+\s*)?([A-Za-z][A-Za-z /&-]{1,30})\s*(?::\s*(.*))?$/;
+ ls.forEach(l=>{const m=l.match(H);const isH=m&&(/^\s*#/.test(l)||/:/.test(l))&&!/^\s*[-*]/.test(l);if(isH){on=re.test(m[1].trim());if(on&&m[2])out.push(m[2].trim());return;}if(on&&l.trim())out.push(l.replace(/^\s*[-*•]\s*/,'').trim());});
+ return out.join('; ');}
+const isTime=s=>MIN.test(s)&&/\btime\b|\bspent\b|\btotal\b|\bminutes\b/i.test(s);
+const isPlan=s=>/\b(?:start|stop|increase|decrease|continue|plan|schedule|recommend|offer|order|follow[- ]?up(?=\s+(?:in|after|with|on|at)\b)|return|see (?:back|again)|refer|admit|consent|elective|emergency|repeat|hold|resume|wound care)\b/i.test(s)||RX_CHANGE.test(s);
+const isFollow=s=>/\bfollow[- ]?up(?=\s+(?:in|after|with|on|at)\b)|\breturn\b|\bsee (?:back|again)\b|\brepeat\b[^.]*\bin \d+/i.test(s);
+const lineVal=(rep,re)=>{const m=String(rep||'').match(re);return m?m[1].trim():'';};
+function mockReply(card,opt){opt=opt||{};const d=String(card.dDict||'').replace(/^Demographics \(non-identifying\):[^\n]*\n*/i,'');const rep=String(card.dReport||'');const all=d+'\n'+rep;
+ const em=emCheck(d,{setting:card.setting,visit:card.visit});const ss=sentences(d).filter(s=>!/^\s*(?:thinking )?level (?:one|two|three|four|five|[1-5])\b/i.test(s)&&!/\b99\d{3}\b/.test(s));
+ const exam=ss.filter(isExam).map(s=>s.replace(/^exam:\s*/i,'')),data=ss.filter(s=>!isExam(s)&&isData(s)),time=ss.filter(isTime),plan=ss.filter(s=>!isExam(s)&&!isData(s)&&!isTime(s)&&isPlan(s));
+ const hpi=ss.filter(s=>!exam.includes(s.replace(/^exam:\s*/i,''))&&!exam.includes(s)&&!data.includes(s)&&!time.includes(s)&&!plan.includes(s)&&!isVisit(s));
+ const pmh=reportSection(rep,/^(?:PMH|Past medical history)$/i),meds=reportSection(rep,/^(?:Medications|Meds)$/i),alg=reportSection(rep,/^Allergies$/i),ros=lineVal(d,/\bROS\s*:\s*([^\n]+)/i);
+ const medCh=plan.filter(s=>RX_CHANGE.test(s)),fu=plan.filter(isFollow);
+ const quals=findQualifiers(d,d).map(q=>q.phrase);const status=quals.find(q=>/goal|stable|progress|worsen|severe|threat|uncontrolled|exacerbation/.test(q));
+ const reason=(hpi[0]||ss.find(x=>!isVisit(x))||'Not documented.').replace(/\.$/,'');
+ const N=[];N.push('Visit type and reason: '+SETTINGS[card.setting]+', '+VISITS[card.visit].toLowerCase()+' patient. '+reason+'.');
+ N.push('HPI: '+(hpi.slice(reason===hpi[0]?1:0).join(' ')||(hpi[0]?hpi[0]:'Not documented.')));
+ N.push('ROS: '+(ros||'Not documented.'));N.push('PMH: '+(pmh?pmh+' (per outside record)':'Not documented.'));N.push('Medications: '+(meds?meds+' (per outside record)':'Not documented.'));
+ N.push('Allergies: '+(alg?alg+' (per outside record)':'Not documented.'));N.push('Exam: '+(exam.join(' ')||'Not documented.'));
+ N.push('Data reviewed: '+(data.join(' ')||'Not documented.')+(rep.trim()?' Outside records supplied (de-identified).':''));
+ N.push('Assessment and plan:\n1. '+reason+'. Status: '+(status||'Not documented (confirm).')+' Evidence: '+(exam.concat(data).slice(0,2).join(' ')||'Not documented.')+' Decision: '+(plan.join(' ')||'Not documented.'));
+ N.push('Medication changes: '+(medCh.join(' ')||'None dictated.'));N.push('Follow-up: '+(fu.join(' ')||'Not documented.'));
+ N.push('MDM summary: Problems '+PLV[em.problems.level].toLowerCase()+', data '+DLV[em.data.level].toLowerCase()+', risk '+PLV[em.risk.level].toLowerCase()+'; overall '+em.mdmLabel.toLowerCase()+' complexity (2 of 3).');
+ if(em.minutes)N.push('Time: '+em.minutes+' minutes total on the date of the visit (as dictated), excluding separately billed services.');
+ N.push('Attestation: '+ATTESTATION);
+ const G=[];if(!exam.length)G.push('Exam: what did you find (pulses, Doppler signals, wound size and depth)?');
+ quals.forEach(q=>G.push('Confirm: "'+q+'"'));if(/\b(?:duplex|abi)\b/i.test(d)&&!OWN_READ.test(d))G.push('Duplex/ABI: an outside study, or your own read that you bill?');
+ if(em.risk.level<3)G.push('Risk decision: any prescription change, procedure decision or admission?');if(!em.minutes)G.push('Time: bill by MDM, or enter total minutes?');
+ if(/\bulcer|wound\b/i.test(d)&&!/\bdepth|deep|probe|bone|tendon|\d+\s*mm\b/i.test(d))G.push('Ulcer: depth (skin only, subcutaneous, muscle, bone)?');
+ let ai=em.code;const fam=FAM[em.family];if(opt.overcall){const i=fam.codes.indexOf(ai);ai=fam.codes[Math.min(fam.codes.length-1,i+1)];}
+ const W=['Problems | '+PLV[em.problems.level]+' | '+em.problems.why.join('; '),'Data | '+DLV[em.data.level]+' | '+em.data.why.join('; '),'Risk | '+PLV[em.risk.level]+' | '+em.risk.why.join('; '),
+  'Suggested level: '+ai+(opt.overcall?' (DEMO: this draft deliberately over-calls by one level to show the safety check)':' by 2-of-3 MDM ('+em.mdmLabel+')'),
+  em.minutes?'Level by time: '+em.minutes+' minutes supports '+(em.timeCode||'no time-based code')+'.':'Level by time: no minutes dictated.',
+  'What would change the level: '+(levelDrops(d,{setting:card.setting,visit:card.visit},quals).join(' ')||'Nothing dictated would lower it.')+' (No wording is suggested to raise a level.)'];
+ const C=[fam.label.split(',')[0]+' E/M '+ai+' (coder to confirm)'].concat(ICD.filter(([re])=>re.test(all)).map(([,c])=>c+' (coder to confirm)'));
+ const O=plan.length?plan.map(s=>'- '+s):['- Not documented.'];
+ const P=['- Follow the plan your doctor explained today.'].concat(medCh.map(s=>'- Medicine change: '+s)).concat(fu.map(s=>'- Next visit: '+s)).concat(['- Call the office if your leg or foot gets worse, colder, or has a new sore.']);
+ const L='Dear referring clinician,\nThank you for asking me to see your patient (case '+(card.label||'')+'). '+reason+'. Plan: '+(plan.join(' ')||'Not documented.')+'\nSincerely,\nD. Bhaskar Rao, MD';
+ return [N.join('\n'),'GAPS:\n'+G.slice(0,6).map((g,i)=>(i+1)+'. '+g).join('\n'),'E/M WHY:\n'+W.join('\n'),'CODES:\n'+C.map(c=>'- '+c).join('\n'),'ORDERS/FOLLOW-UP SUMMARY:\n'+O.join('\n'),
+  'PATIENT INSTRUCTIONS:\n'+P.join('\n'),'LETTER:\n'+L].join('\n\n');}
+// FAKE demo patients (worked examples A-D from the plan + one nursing-home case). Every name, date and number is invented.
+const DEMO=[
+ {label:'A-03',setting:'office',visit:'new',dict:'New patient, office. Referred by Dr. Quentin Fakename for a right great toe wound for three weeks. Rest pain at night, progressive, threat to limb. Exam: right femoral pulse 2+, popliteal and pedal pulses absent, monophasic Doppler signals DP and PT, 1 cm dry wound at the tip of the right great toe, no sign of infection. I reviewed the referral notes, the BMP and the A1c. I personally reviewed the outside CTA images: right SFA occlusion with tibial disease. Spoke with Dr. Fakename about the plan. Plan: elective major revascularization, right leg angiogram with possible intervention; risk factors diabetes, CKD 3 and current smoking. Start atorvastatin 80 mg. Follow up after the angiogram.',
+  report:'OUTSIDE REFERRAL (FAKE)\nPatient: Testy McFakerson\nDOB: 02/03/1951\nPMH: Type 2 diabetes, CKD stage 3, hypertension\nMedications: metformin 500 mg twice daily, lisinopril 10 mg daily\nAllergies: NKDA'},
+ {label:'B-11',setting:'office',visit:'est',overcall:true,dict:'Established patient. Left carotid stenosis follow-up, no symptoms. Duplex today in our lab, I read it: left ICA 60 to 79 percent, unchanged from last year. Lipid panel reviewed, LDL 112, not at goal on atorvastatin 40 mg. Increase atorvastatin to 80 mg. Continue aspirin. Repeat duplex in 6 months.',report:''},
+ {label:'C-04',setting:'hospA',visit:'new',dict:'Hospital A inpatient consult, new to me. Asked to see for a cold left foot since yesterday. Severe rest pain, threat to limb. Exam: left foot cool, no Doppler signals DP or PT, motor and sensation intact. I reviewed the hospitalist notes, the CBC, the BMP and the coags. I personally reviewed the CT angiogram images: left popliteal occlusion. Discussed with the hospitalist. Start heparin drip. Plan emergency major surgery, left leg thrombectomy tonight; risk factors atrial fibrillation and CKD. Total time 70 minutes.',report:''},
+ {label:'D-21',setting:'office',visit:'est',dict:'Established patient. Right leg claudication at two blocks, stable, at goal on current treatment. Exam: feet warm, no wounds. Continue cilostazol and the walking program. Follow up in one year with ABI. Thinking level four.',report:''},
+ {label:'E-15',setting:'nursing',visit:'est',dict:'Nursing home visit, established. Left heel pressure ulcer, worsening, now 2 cm with slough. Exam: left heel 2 cm ulcer with slough, surrounding redness, DP pulse 1+. Start cephalexin 500 mg four times daily for cellulitis. Wound care to continue daily. Follow up in 2 weeks. Total time 20 minutes.',
+  report:'WOUND CLINIC NOTE (FAKE)\nName: Ima Notreal   MRN: 00451234\nSeen 10/20/2026 at Sunny Acres Care Center, phone (302) 555-0199\nPMH: Stroke with left-sided weakness, PAD\nAllergies: penicillin (rash)'}];
+
+// ---------- card state, persistence ----------
+const CARD_STR=['id','label','setting','visit','dict','report','dDict','dReport','reply','note','err','finalCode','gapsJson','status'];
+const CARD_BOOL=['mock','approved','overcall','copied','levelAck'];const CARD_NUM=['reviewMs','createdAt','draftedAt'];
+const AUDIT_STR=['label','setting','visit','code','aiCode','localCode'];const AUDIT_NUM=['reviewSec','doneAt'];
+function newId(){return 'q'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function newCard(o){o=o||{};return {id:o.id||newId(),label:String(o.label||'').trim(),setting:SETTINGS[o.setting]?o.setting:'office',visit:VISITS[o.visit]?o.visit:'est',dict:o.dict||'',report:o.report||'',dDict:'',dReport:'',
+ reply:'',note:'',err:'',finalCode:'',status:'new',gaps:[],answers:{},quals:{},mock:!!o.mock,approved:false,overcall:!!o.overcall,copied:false,levelAck:false,reviewMs:0,createdAt:o.createdAt||Date.now(),draftedAt:0};}
+function pickCard(c){const o={};CARD_STR.forEach(k=>{if(typeof c[k]==='string')o[k]=c[k];});CARD_BOOL.forEach(k=>{if(typeof c[k]==='boolean')o[k]=c[k];});CARD_NUM.forEach(k=>{if(typeof c[k]==='number'&&isFinite(c[k]))o[k]=c[k];});
+ o.setting=SETTINGS[o.setting]?o.setting:'office';o.visit=VISITS[o.visit]?o.visit:'est';
+ o.gaps=Array.isArray(c.gaps)?c.gaps.filter(x=>typeof x==='string').slice(0,6):[];o.answers={};if(c.answers&&typeof c.answers==='object')Object.keys(c.answers).forEach(k=>{if(/^\d$/.test(k)&&typeof c.answers[k]==='string')o.answers[k]=c.answers[k];});
+ o.quals={};if(c.quals&&typeof c.quals==='object')Object.keys(c.quals).forEach(k=>{if(/^(ok|removed)$/.test(c.quals[k])&&k.length<40)o.quals[k]=c.quals[k];});delete o.gapsJson;return o;}
+function pickAudit(a){const o={};AUDIT_STR.forEach(k=>{if(typeof a[k]==='string')o[k]=a[k].slice(0,24);});AUDIT_NUM.forEach(k=>{if(typeof a[k]==='number'&&isFinite(a[k]))o[k]=a[k];});o.mock=!!a.mock;return o;}
+// q={cards,audit,demo,day}. Returns null when nothing is worth saving.
+function packQueue(q,now){q=q||{};const cards=(q.cards||[]).map(pickCard),audit=(q.audit||[]).map(pickAudit);if(!cards.length&&!audit.length)return null;
+ const j=JSON.stringify({v:VER,savedAt:+(now||Date.now()),demo:!!q.demo,cards,audit});if(j.length>MAX)throw new Error('queue too large to save on this device');return j;}
+function unpackQueue(str,opt){opt=opt||{};if(!str)return null;let j;try{j=JSON.parse(str);}catch(e){return null;}if(!j||j.v!==VER)return null;
+ const h=+opt.autoClearHours||0,now=+(opt.now||Date.now());if(h>0&&(!(+j.savedAt)||now-(+j.savedAt)>h*3600e3))return {expired:true};
+ return {savedAt:+j.savedAt||0,demo:!!j.demo,cards:(Array.isArray(j.cards)?j.cards:[]).filter(c=>c&&typeof c==='object').map(c=>Object.assign(newCard(),pickCard(c))),audit:(Array.isArray(j.audit)?j.audit:[]).map(pickAudit)};}
+// After "Copy & finish": every text field is dropped; only a non-PHI audit line stays.
+function finishCard(card,now){return pickAudit({label:validLabel(card.label)?card.label:'(case)',setting:card.setting,visit:card.visit,code:card.finalCode||'',aiCode:card.aiCode||'',localCode:card.localCode||'',reviewSec:Math.round((card.reviewMs||0)/1000),doneAt:+(now||Date.now()),mock:card.mock});}
+// Case labels are short codes like "A-03" or "Rm 4 AM": no names, no dates of birth, no MRNs.
+function validLabel(label,detect){const s=String(label||'').trim();if(!/^[A-Za-z0-9][A-Za-z0-9 #.\-\/]{0,15}$/.test(s)||!/\d/.test(s))return false;if(/\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}/.test(s)||/\d{5,}/.test(s))return false;
+ if(typeof detect==='function'&&detect(s,{}).length)return false;return true;}
+// Status shown in the queue table
+function cardStatus(card,info){if(card.status==='drafting')return 'drafting';if(card.err)return 'error';if(!card.note)return 'waiting';if(card.approved)return 'approved';
+ info=info||{};if(info.lower&&!card.levelAck)return 'lower';if(info.openQuals>0)return 'needs';return 'ready';}
+const STATUS_LABEL={waiting:'Waiting for draft',drafting:'Drafting…',error:'Problem: open',needs:'Needs answers',lower:'Lower level suggested',ready:'Ready',approved:'Approved: copy it'};
+// The micro-template checklist under the dictation box ("heard so far")
+function heard(card){const d=String(card.dict||'')+' '+String(card.report||'');const em=emCheck(d,card);return [
+ {k:'New / established',ok:!!card.visit},{k:'Problem + status word',ok:/\bstable\b|\bat goal\b|\bnot at goal\b|\bprogress\w*|\bworsen\w*|\bsevere\b|\bthreat to\b|\buncontrolled\b|\bimprov\w*/i.test(d)},
+ {k:'Data + source',ok:em.data.level>1||em.data.tests.length>0||em.data.excluded.length>0},{k:'Risk decision',ok:em.risk.level>=2},{k:'Exam',ok:sentences(d).some(isExam)},{k:'Time (optional)',ok:em.minutes>0,optional:true}];}
+// Stats for the queue header
+function stats(cards,audit,now){now=+(now||Date.now());const done=(audit||[]).length,left=(cards||[]).length;const secs=(audit||[]).map(a=>a.reviewSec||0).filter(x=>x>0);
+ const avg=secs.length?Math.round(secs.reduce((a,b)=>a+b,0)/secs.length):0;const per=avg||TARGET_SEC;return {done,total:done+left,left,avgSec:avg,targetSec:TARGET_SEC,onTarget:!avg||avg<=TARGET_SEC,finishAt:left?now+left*per*1000:now};}
+const mmss=s=>{s=Math.max(0,Math.round(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+return {KEY,VER,TARGET_SEC,OPENAI,SETTINGS,VISITS,APPENDIX_A,ATTESTATION,FAM,LV,DLV,PLV,family,codeRank,emCheck,levelAdvice,levelDrops,findQualifiers,removeQualifier,noteBody,
+ parseReply,missingSections,notDocumented,addNotDocumented,extractSections,COPY,queueBase,buildQueueInput,buildQueueRequest,scrubReply,draftCard,mockReply,DEMO,
+ newCard,pickCard,packQueue,unpackQueue,finishCard,validLabel,cardStatus,STATUS_LABEL,heard,stats,mmss,sentences,maskSigner};
+})(typeof DeIDTx!=='undefined'?DeIDTx:require('./tx.js'));
+if(typeof module!=='undefined')module.exports=DeIDQueue;
+/*QUEUE-END*/
+</script>
+<script>
 (function(){
 const $=id=>document.getElementById(id);let tm,last={},lastPatient={name:'',mrn:'',date:null};
 let dtm=null,restoring=false,lastSig='',savedAt=0,saveErr='',autoH=0;
@@ -682,6 +1047,7 @@ const DEF={backend:'azure',chunkSec:25,language:'en',vocab:DeIDTx.DEFAULT_VOCAB,
  note:{provider:'openai',api:'responses',model:'gpt-6.1-sol',effort:''},compat:{url:'',model:'',key:''},helper:{url:'',pin:''},
  azure:{endpoint:'',deployment:'whisper',apiVersion:'2024-06-01',key:'',chatDeployment:'',chatApiVersion:'2024-10-21'},
  openai:{key:'',model:'whisper-1',chatModel:'gpt-4o'},local:{url:'http://127.0.0.1:8080/inference',wav:true},
+ queue:{key:'',base:'',api:'responses',model:'gpt-6.1-sol',effort:'',wipeOnCopy:true,autoDraft:true},
  share:{url:'',pin:''},m365:{clientId:'',tenantId:'',folder:'Clinical Notes/DeID Pad',driveId:'',format:'docx'}};
 const merge=(a,b)=>{const o=JSON.parse(JSON.stringify(a));if(b&&typeof b==='object')Object.keys(o).forEach(k=>{if(b[k]===undefined)return;o[k]=(o[k]&&typeof o[k]==='object')?Object.assign(o[k],b[k]):b[k];});return o;};
 let cfg=merge(DEF,null),remember=false;
@@ -769,7 +1135,7 @@ try{const s=localStorage.getItem(PLS);if(s){const j=JSON.parse(s);prefs={instr:j
 const tplKey=()=>$('tpl').value||'soap';
 const curInstr=()=>{const v=prefs.instr[tplKey()];return v==null?DeIDTx.TEMPLATES[tplKey()].instructions:v;};
 function persistPrefs(){try{if(!rememberInstr){localStorage.removeItem(PLS);return;}
- const bad=[].concat(...Object.keys(prefs.instr).map(k=>DeID.detect(prefs.instr[k])),DeID.detect(prefs.refs));
+ const bad=[].concat(...Object.keys(prefs.instr).map(k=>DeID.detect(DeIDQueue.maskSigner(prefs.instr[k]))),DeID.detect(prefs.refs));
  if(bad.length){say('Not saved on device: instructions/references look like they contain identifiers ('+bad.map(b=>b.value).slice(0,3).join(', ')+')');return;}
  localStorage.setItem(PLS,JSON.stringify(prefs));}catch(e){}}
 function fillInstr(){$('instr').value=curInstr();$('refs').value=prefs.refs;$('rememberInstr').checked=rememberInstr;$('instrfor').textContent='for: '+DeIDTx.TEMPLATES[tplKey()].label;}
@@ -864,7 +1230,7 @@ $('complete').onclick=()=>saveNote('onedrive');
 // ---- settings panel ----
 function syncBackend(){document.querySelectorAll('[data-b]').forEach(d=>d.classList.toggle('hide',d.dataset.b!==cfg.backend));document.querySelectorAll('[data-np]').forEach(d=>d.classList.toggle('hide',d.dataset.np!==cfg.note.provider));}
 function fillSettings(){document.querySelectorAll('#settings [data-k]').forEach(el=>{const v=getK(el.dataset.k);if(el.type==='checkbox')el.checked=!!v;else el.value=v==null?'':v;});
- $('remember').checked=remember;$('autoclear').value=String(autoH);fillInstr();$('redir').textContent=/^https?:$/.test(location.protocol)?redirectUri():'(serve over http://localhost or https to use OneDrive export)';syncBackend();}
+ $('remember').checked=remember;$('autoclear').value=String(autoH);fillInstr();$('qinstr').value=qInstr();$('redir').textContent=/^https?:$/.test(location.protocol)?redirectUri():'(serve over http://localhost or https to use OneDrive export)';syncBackend();}
 document.querySelectorAll('#settings [data-k]').forEach(el=>{const h=()=>{let v=el.type==='checkbox'?el.checked:el.value;if(el.type==='number')v=+v||25;setK(el.dataset.k,v);syncBackend();persist();};el.addEventListener('input',h);el.addEventListener('change',h);});
 $('remember').onchange=()=>{if($('remember').checked&&!confirm('Save API keys and PIN in plain text in this browser? Only do this on your own, encrypted, password-locked device.')){$('remember').checked=false;return;}remember=$('remember').checked;persist();};
 function openSettings(){fillSettings();$('settings').classList.add('on');}
@@ -941,7 +1307,7 @@ async function addScanFiles(files){files=[].slice.call(files||[]);if(!files.leng
   const pg={src,canvas:drawRot(src,0,0,$('scanenh').checked),rot:0,words:[],text:'',conf:0,state:'queued'};SC.pages.push(pg);SC.sel.clear();showPage(SC.pages.length-1);queueRead(pg,true);}}
 function openScan(){$('scanv').classList.add('on');}
 function scanInsertText(pg,i,useSel){const t=useSel&&SC.sel.size?DeIDTx.wordsText(pg.words,SC.sel):$('scantext').value;return t;}
-function insertScan(list){let v=$('in').value,n=0;list.forEach(([text,num])=>{const nv=DeIDTx.scanInsert(v,text,num);if(nv!==v)n++;v=nv;});
+function insertScan(list){if(scanHook){scanHook(list);return;}let v=$('in').value,n=0;list.forEach(([text,num])=>{const nv=DeIDTx.scanInsert(v,text,num);if(nv!==v)n++;v=nv;});
  if(!n){say('Nothing to insert yet',2000);return;}$('in').value=v;$('in').scrollTop=$('in').scrollHeight;go();say('Inserted '+n+' scanned page'+(n>1?'s':'')+' into the text box (de-identified)',3000);}
 $('scan').onclick=openScan;$('scanclose').onclick=()=>$('scanv').classList.remove('on');
 ['scancam','scanpick'].forEach(id=>$(id).addEventListener('change',e=>{const f=[].slice.call(e.target.files||[]);e.target.value='';addScanFiles(f);}));
@@ -983,13 +1349,13 @@ function updDraftStat(){const el=$('draftstat');el.classList.toggle('err',!!save
   'Text you enter is saved on this device until you tap Clear all'+(autoH?' (auto-clear after '+autoH+' h without edits)':'')+'.';}
 function saveNow(){clearTimeout(dtm);dtm=null;if(restoring)return;
  try{const s=snap(),st=DeIDTx.draftPick(s),sig=st?JSON.stringify(st):'';if(sig===lastSig&&!saveErr)return;
-  if(!st)DeIDTx.clearDraft(localStorage);else localStorage.setItem(DeIDTx.DRAFT_KEY,DeIDTx.packDraft(s));lastSig=sig;savedAt=st?Date.now():0;saveErr='';}
+  if(!st)localStorage.removeItem(DeIDTx.DRAFT_KEY);else localStorage.setItem(DeIDTx.DRAFT_KEY,DeIDTx.packDraft(s));lastSig=sig;savedAt=st?Date.now():0;saveErr='';}
  catch(e){saveErr=/quota/i.test(e&&e.name||'')?'browser storage is full':(e&&e.message||'storage unavailable');}updDraftStat();}
 function saveSoon(){if(restoring)return;clearTimeout(dtm);dtm=setTimeout(saveNow,300);}
-['input','change'].forEach(ev=>document.addEventListener(ev,e=>{const t=e.target;if(t&&t.closest&&t.closest('#settings,#scanv'))return;saveSoon();},true));
+['input','change'].forEach(ev=>document.addEventListener(ev,e=>{const t=e.target;if(t&&t.closest&&t.closest('#settings,#scanv,#qv'))return;saveSoon();},true));
 function restoreDraft(){autoH=DeIDTx.draftAutoClearHours(localStorage);let r=null;
  try{r=DeIDTx.unpackDraft(localStorage.getItem(DeIDTx.DRAFT_KEY),{autoClearHours:autoH});}catch(e){r=null;}
- if(r&&r.expired){DeIDTx.clearDraft(localStorage);say('Saved draft auto-cleared (no edits for '+autoH+' h)',6000);r=null;}
+ if(r&&r.expired){localStorage.removeItem(DeIDTx.DRAFT_KEY);say('Saved draft auto-cleared (no edits for '+autoH+' h)',6000);r=null;}
  if(r&&r.state){const s=r.state;restoring=true;
   try{['in','out','soap','names','pname','pmrn','malabel','docid','prog'].forEach(k=>{if(s[k]!=null)$(k).value=s[k];});
    $('pname').dataset.dirty=s.pnameDirty?'1':'';$('pmrn').dataset.dirty=s.pmrnDirty?'1':'';
@@ -1001,7 +1367,7 @@ function restoreDraft(){autoH=DeIDTx.draftAutoClearHours(localStorage);let r=nul
   }finally{restoring=false;}
   lastSig=JSON.stringify(DeIDTx.draftPick(snap())||{});savedAt=r.savedAt||Date.now();if(DeIDTx.draftPick(snap()))saveNow();}
  updDraftStat();}
-function clearAll(){clearTimeout(dtm);dtm=null;wipe();$('names').value='';DeIDTx.clearDraft(localStorage);lastSig='';savedAt=0;saveErr='';updDraftStat();}
+function clearAll(){clearTimeout(dtm);dtm=null;wipe();$('names').value='';DeIDTx.clearDraft(localStorage);qWipeAll();lastSig='';savedAt=0;saveErr='';updDraftStat();}
 $('clear').onclick=()=>{clearAll();say('Cleared. Nothing is saved on this device.',2500);};
 $('autoclear').onchange=()=>{autoH=+$('autoclear').value||0;try{if(autoH)localStorage.setItem(DeIDTx.DRAFT_PREFS_KEY,JSON.stringify({autoClearHours:autoH}));else localStorage.removeItem(DeIDTx.DRAFT_PREFS_KEY);}catch(e){}updDraftStat();};
 setInterval(()=>{if(autoH>0&&savedAt&&Date.now()-savedAt>autoH*3600e3&&!active&&!pending){clearAll();say('Draft auto-cleared (no edits for '+autoH+' h)',6000);}},60000);
@@ -1009,6 +1375,179 @@ setInterval(()=>{if(autoH>0&&savedAt&&Date.now()-savedAt>autoH*3600e3&&!active&&
 window.addEventListener('pagehide',saveNow);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveNow();});
 window.addEventListener('beforeunload',e=>{saveNow();if(active||pending||failed.length||SC.pages.length||saveErr){e.preventDefault();e.returnValue='';return '';}});
 restoreDraft();
+// ---- Review queue (Phase 1 batch): per-patient cards -> AI draft -> review -> copy & finish ----
+// State lives in localStorage key deidpad.draft.queue.v1 (allowlisted fields, no API keys). "Clear all" removes it.
+const QS={cards:[],audit:[],demo:false,view:'list',cur:null,filter:'all',revStart:0,timer:null,qsavedAt:0,busy:new Set()};
+const QK=DeIDQueue.KEY;const qmsg=(t,ms)=>{$('qmsg').textContent=t;if(ms)setTimeout(()=>{if($('qmsg').textContent===t)$('qmsg').textContent='';},ms);};
+const qcfg=()=>{const q=cfg.queue||{};return {key:String(q.key||'').trim()||String((cfg.openai||{}).key||'').trim(),base:q.base,api:q.api,model:q.model,effort:q.effort,instructions:qInstr()};};
+const qInstr=()=>{const v=prefs.instr.queue;return v==null?DeIDQueue.APPENDIX_A:v;};
+const qCard=id=>QS.cards.find(c=>c.id===id);
+const el=(tag,props,kids)=>{const e=document.createElement(tag);if(props)Object.keys(props).forEach(k=>{if(props[k]==null||props[k]===false)return;if(k==='text')e.textContent=props[k];else if(k==='cls')e.className=props[k];else if(k.startsWith('on'))e[k]=props[k];else e.setAttribute(k,props[k]);});
+ (kids||[]).forEach(k=>k!=null&&e.appendChild(typeof k==='string'?document.createTextNode(k):k));return e;};
+function qDeid(text){const t=String(text||'');if(!t.trim())return '';const r=DeID.run(t,{alwaysRemove:alwaysList(),facilities:true,patientName:''});
+ return r.text.replace(/^Demographics \(non-identifying\): age unknown, sex unknown\s*\n*/,'').trim();}
+function qSave(){try{const j=DeIDQueue.packQueue({cards:QS.cards.map(c=>Object.assign({},c,{status:c.status==='drafting'?'new':c.status})),audit:QS.audit,demo:QS.demo});
+  if(!j)localStorage.removeItem(QK);else localStorage.setItem(QK,j);QS.qsavedAt=j?Date.now():0;}
+ catch(e){qmsg('Queue NOT saved on this device: '+(/quota/i.test(e&&e.name||'')?'browser storage is full':e.message));}}
+let qst=null;const qSaveSoon=()=>{clearTimeout(qst);qst=setTimeout(qSave,300);};
+function qRestore(){let r=null;try{r=DeIDQueue.unpackQueue(localStorage.getItem(QK),{autoClearHours:autoH});}catch(e){}
+ if(r&&r.expired){localStorage.removeItem(QK);r=null;}
+ if(r){QS.cards=r.cards;QS.audit=r.audit;QS.demo=r.demo;QS.qsavedAt=r.savedAt;QS.cards.forEach(c=>{if(c.status==='drafting')c.status='new';});}
+ $('qdemomode').checked=QS.demo;qBtnCount();}
+function qWipeAll(){qStopTimer();QS.cards=[];QS.audit=[];QS.demo=false;QS.cur=null;QS.busy.clear();QS.view='list';try{localStorage.removeItem(QK);}catch(e){}
+ if($('qdemomode'))$('qdemomode').checked=false;$('qnote').value='';$('qdict').value='';$('qreport').value='';$('qlabel').value='';qBtnCount();if($('qv').classList.contains('on'))qRender();}
+function qBtnCount(){const n=QS.cards.length;$('queue').textContent='☰ Review queue'+(n?' ('+n+')':'');}
+// ---------- per-card derived info ----------
+function qInfo(c){const p=c.reply?DeIDQueue.parseReply(c.reply):null;const src=String(c.dDict||'');const removed=Object.keys(c.quals||{}).filter(k=>c.quals[k]==='removed');
+ const local=DeIDQueue.emCheck(src,{setting:c.setting,visit:c.visit,removed});const aiCode=p?p.aiCode:'';const adv=DeIDQueue.levelAdvice(local,aiCode);
+ const quals=c.note?DeIDQueue.findQualifiers(c.note,src):[];const openQuals=quals.filter(q=>(c.quals||{})[q.phrase]!=='ok').length;
+ const gapsOpen=(c.gaps||[]).filter((g,i)=>!String((c.answers||{})[i]||'').trim()).length;
+ return {p,local,aiCode,adv,quals,openQuals,gapsOpen,lower:adv.lower,removed};}
+function qStatus(c){const i=c.note?qInfo(c):{};return DeIDQueue.cardStatus(c,i);}
+function qSuggested(c,i){i=i||qInfo(c);const f=DeIDQueue.FAM[i.local.family].codes;const a=f.indexOf(i.aiCode),l=f.indexOf(i.local.code);return a>=0&&a<l?i.aiCode:i.local.code;}
+// ---------- views ----------
+function qShow(view){QS.view=view;['qlist','qcap','qrev'].forEach(id=>$(id).classList.toggle('hide',id!==({list:'qlist',cap:'qcap',rev:'qrev'})[view]));if(view!=='rev')qStopTimer();qRender();$('qv').scrollTop=0;}
+function qOpen(){$('qv').classList.add('on');document.body.classList.add('qon');qShow(QS.view==='rev'&&qCard(QS.cur)?'rev':QS.view==='cap'?'cap':'list');}
+function qClose(){qStopTimer();qSave();$('qv').classList.remove('on');document.body.classList.remove('qon');qBtnCount();}
+function qRender(){$('qdemo').classList.toggle('hide',!QS.demo);$('qloaddemo').classList.toggle('hide',!QS.demo);
+ $('qkeynote').classList.toggle('hide',QS.demo||!!qcfg().key);
+ if(QS.view==='list')qRenderList();else if(QS.view==='rev')qRenderRev();else qRenderCap();}
+const SETS=DeIDQueue.SETTINGS,VIS=DeIDQueue.VISITS;
+function qRenderList(){const s=DeIDQueue.stats(QS.cards,QS.audit);const st=$('qstats');st.textContent='';
+ const card=(t,v,sub,bar)=>el('div',{cls:'qstat'},[el('div',{cls:'qk',text:t}),el('div',{cls:'qv',text:v}),sub?el('div',{cls:'small',text:sub}):null,bar!=null?el('div',{cls:'qbar'},[el('i',{style:'width:'+Math.round(bar*100)+'%'})]):null]);
+ const openQ=QS.cards.reduce((n,c)=>n+(c.note?qInfo(c).openQuals+qInfo(c).gapsOpen:0),0);
+ st.appendChild(card('Finished',s.done+' of '+s.total,s.left?s.left+' left':'all done',s.total?s.done/s.total:0));
+ st.appendChild(card('Average review time',s.avgSec?DeIDQueue.mmss(s.avgSec):'–','target 3:00 or less'+(s.avgSec&&!s.onTarget?' (over target)':'')));
+ st.appendChild(card('Projected finish',s.left?hhmm(s.finishAt):'–',s.left?'at '+(s.avgSec?'your average':'3 min')+' per patient':''));
+ st.appendChild(card('Open questions',String(openQ),'questions + qualifiers to confirm'));
+ const ch=$('qchips');ch.textContent='';[['all','All'],['needs','Needs answers'],['lower','Lower level suggested'],['ready','Ready'],['office','Office'],['hospA','Hospital A'],['hospB','Hospital B'],['nursing','Nursing home']].forEach(([k,t])=>
+  ch.appendChild(el('button',{type:'button',cls:'chip'+(QS.filter===k?' on':''),text:t,onclick:()=>{QS.filter=k;qRenderList();}})));
+ const tb=$('qtbody');tb.textContent='';
+ const rows=QS.cards.filter(c=>{const f=QS.filter;if(f==='all')return true;if(SETS[f])return c.setting===f;return qStatus(c)===f;});
+ rows.forEach(c=>{const stt=qStatus(c);const i=c.note?qInfo(c):null;
+  tb.appendChild(el('tr',{},[el('td',{},[el('b',{text:c.label||'(no label)'}),c.mock?el('span',{cls:'qfake',text:' FAKE'}):null]),el('td',{text:SETS[c.setting]}),el('td',{text:VIS[c.visit]}),
+   el('td',{text:i?qSuggested(c,i):'–'}),el('td',{text:i?String(i.gapsOpen+i.openQuals):'–'}),el('td',{},[el('span',{cls:'pill '+stt,text:DeIDQueue.STATUS_LABEL[stt]})]),
+   el('td',{},[el('button',{type:'button',cls:'p',text:c.note||c.err?'Open':'Edit',onclick:()=>c.note||c.err?qOpenRev(c.id):qEdit(c.id)}),
+    !c.note&&stt!=='drafting'?el('button',{type:'button',text:'Draft',onclick:()=>qDraft(c)}):null])]));});
+ QS.audit.slice().reverse().forEach(a=>tb.appendChild(el('tr',{cls:'done'},[el('td',{text:a.label}),el('td',{text:SETS[a.setting]||''}),el('td',{text:VIS[a.visit]||''}),el('td',{text:a.code||'–'}),el('td',{text:''}),
+  el('td',{},[el('span',{cls:'pill done',text:'Finished '+hhmm(a.doneAt)+' · text wiped'})]),el('td',{cls:'small',text:DeIDQueue.mmss(a.reviewSec)})])));
+ $('qempty').classList.toggle('hide',!!(QS.cards.length||QS.audit.length));
+ $('qdraftall').disabled=!QS.cards.some(c=>!c.note&&qStatus(c)!=='drafting');}
+// ---------- capture ----------
+let capId=null,capSet='office',capVis='new';
+function qNew(){capId=null;$('qlabel').value='';$('qdict').value='';$('qreport').value='';capSet=capSet||'office';capVis='new';$('qcaptitle').textContent='Add patient';$('qcapdel').classList.add('hide');qShow('cap');$('qlabel').focus();}
+function qEdit(id){const c=qCard(id);if(!c)return;capId=id;$('qlabel').value=c.label;$('qdict').value=c.dict;$('qreport').value=c.report;capSet=c.setting;capVis=c.visit;$('qcaptitle').textContent='Edit '+(c.label||'patient');$('qcapdel').classList.remove('hide');qShow('cap');}
+function qRenderCap(){document.querySelectorAll('#qsetting button').forEach(b=>b.classList.toggle('on',b.dataset.v===capSet));document.querySelectorAll('#qvisit button').forEach(b=>b.classList.toggle('on',b.dataset.v===capVis));
+ const tmp={dict:$('qdict').value,report:'',setting:capSet,visit:capVis};const h=$('qheard');h.textContent='';h.appendChild(el('b',{text:'Heard so far: '}));
+ DeIDQueue.heard(tmp).forEach(x=>h.appendChild(el('span',{cls:'hk'+(x.ok?' ok':'')+(x.optional?' opt':''),text:(x.ok?'✓ ':'○ ')+x.k})));
+ const lab=$('qlabel').value.trim();$('qlabelwarn').textContent=lab&&!DeIDQueue.validLabel(lab,DeID.detect)?'Use a short code with a number, like A-03 or Rm 4 (max 16 characters). No names, birth dates or record numbers.':'';
+ const d=qDeid($('qdict').value),r=qDeid($('qreport').value);$('qprev').textContent=(DeIDQueue.buildQueueInput({label:lab||'(label)',setting:capSet,visit:capVis,dDict:d,dReport:r}));}
+let capT=null;['qdict','qreport','qlabel'].forEach(id=>$(id).addEventListener('input',()=>{clearTimeout(capT);capT=setTimeout(qRenderCap,250);}));
+document.querySelectorAll('#qsetting button').forEach(b=>b.onclick=()=>{capSet=b.dataset.v;qRenderCap();});
+document.querySelectorAll('#qvisit button').forEach(b=>b.onclick=()=>{capVis=b.dataset.v;qRenderCap();});
+function qCapSave(){const label=$('qlabel').value.trim();if(!DeIDQueue.validLabel(label,DeID.detect)){qmsg('Add a short case label first (like A-03). No names or dates.',4000);$('qlabel').focus();return null;}
+ const dict=$('qdict').value,report=$('qreport').value;if(!dict.trim()&&!report.trim()){qmsg('Add a dictation first.',3000);return null;}
+ let c=capId&&qCard(capId);if(!c){c=DeIDQueue.newCard({label,setting:capSet,visit:capVis,mock:QS.demo});QS.cards.push(c);}
+ const changed=c.dict!==dict||c.report!==report||c.setting!==capSet||c.visit!==capVis;Object.assign(c,{label,setting:capSet,visit:capVis,dict,report,dDict:qDeid(dict),dReport:qDeid(report)});
+ if(changed&&c.note&&!confirm('You changed this patient. Throw away the current draft and redraft?')){qSave();return c;}
+ if(changed){Object.assign(c,{reply:'',note:'',gaps:[],answers:{},quals:{},approved:false,copied:false,levelAck:false,err:'',finalCode:'',status:'new'});}
+ qSave();qBtnCount();return c;}
+$('qsavenext').onclick=()=>{const c=qCapSave();if(!c)return;if(cfg.queue.autoDraft!==false&&!c.note)qDraft(c);qmsg('Saved '+c.label+'. Next patient.',2500);qNew();};
+$('qsavedraft').onclick=()=>{const c=qCapSave();if(!c)return;if(!c.note)qDraft(c);qShow('list');};
+$('qcapcancel').onclick=()=>qShow('list');
+$('qcapdel').onclick=()=>{if(!capId||!confirm('Delete this patient from the queue? Its text is wiped from this device.'))return;QS.cards=QS.cards.filter(c=>c.id!==capId);capId=null;qSave();qBtnCount();qShow('list');};
+$('qfrompad').onclick=()=>{const v=$('in').value.trim();if(!v){qmsg('The main page text box is empty.',2500);return;}$('qdict').value=($('qdict').value.trim()?$('qdict').value.replace(/\s*$/,'\n'):'')+v;qRenderCap();qmsg('Copied the main page text into this dictation. Clear the main page if you no longer need it.',4000);};
+let scanHook=null;$('qscan').onclick=()=>{scanHook=list=>{let v=$('qreport').value;list.forEach(([t,n])=>{v=DeIDTx.scanInsert(v,t,n);});$('qreport').value=v;qRenderCap();$('scanv').classList.remove('on');scanHook=null;qmsg('Scanned text added to the outside report (de-identified before sending).',3500);};openScan();};
+// ---------- drafting ----------
+async function qDraft(c){if(!c||QS.busy.has(c.id))return;const mock=QS.demo||c.mock;
+ if(!mock&&!qcfg().key&&DeIDQueue.queueBase(qcfg())===DeIDQueue.OPENAI){c.err='No OpenAI API key yet. Add it in Settings > Review queue, or turn on Demo mode to try fake patients.';qSave();qRender();return;}
+ QS.busy.add(c.id);c.status='drafting';c.err='';qRender();
+ try{let text,flagged=[];
+  if(mock){await new Promise(r=>setTimeout(r,500));text=DeIDQueue.mockReply(c,{overcall:c.overcall});const s=DeIDQueue.scrubReply(text,{detect:DeID.detect,alwaysRemove:alwaysList()});text=s.text;flagged=s.flagged;}
+  else{const r=await DeIDQueue.draftCard(qcfg(),c,{detect:DeID.detect,alwaysRemove:alwaysList(),signal:ctl.signal});text=r.text;flagged=r.flagged;}
+  const p=DeIDQueue.parseReply(text);Object.assign(c,{reply:text,note:p.note,gaps:p.gaps,answers:{},quals:{},approved:false,copied:false,levelAck:false,finalCode:'',draftedAt:Date.now(),status:'drafted'});
+  if(flagged.length)c.err='';if(flagged.length)qmsg('Removed from the AI reply (now tokens): '+flagged.map(i=>i.category).join(', '),5000);}
+ catch(e){c.status='new';c.err=e.name==='GuardError'?'NOT SENT. Identifiers were found in what would be sent. Edit the dictation, then draft again:\n'+DeIDTx.formatIssues(e.issues):e.name==='AbortError'?'Stopped.':('Draft failed: '+e.message+(e instanceof TypeError?' (network or blocked endpoint)':''));}
+ finally{QS.busy.delete(c.id);if(c.status==='drafting')c.status='new';qSave();qRender();}}
+$('qdraftall').onclick=async()=>{const todo=QS.cards.filter(c=>!c.note&&!QS.busy.has(c.id));for(let i=0;i<todo.length;i+=2)await Promise.all(todo.slice(i,i+2).map(qDraft));};
+// ---------- review ----------
+function qStartTimer(){qStopTimer();QS.revStart=Date.now();QS.timer=setInterval(qTick,1000);qTick();}
+function qStopTimer(){if(QS.timer){clearInterval(QS.timer);QS.timer=null;}const c=qCard(QS.cur);if(c&&QS.revStart){c.reviewMs=(c.reviewMs||0)+(Date.now()-QS.revStart);qSaveSoon();}QS.revStart=0;}
+function qElapsed(c){return ((c.reviewMs||0)+(QS.revStart?Date.now()-QS.revStart:0))/1000;}
+function qTick(){const c=qCard(QS.cur);if(!c)return;const s=qElapsed(c);const t=$('qtimer');t.textContent='⏱ '+DeIDQueue.mmss(s)+' on this note (target 3:00)';t.classList.toggle('over',s>DeIDQueue.TARGET_SEC);}
+function qOpenRev(id){QS.cur=id;qShow('rev');if(document.visibilityState==='visible')qStartTimer();}
+function qRenderRev(){const c=qCard(QS.cur);if(!c){qShow('list');return;}const i=qInfo(c);
+ $('qrevtitle').textContent=(c.label||'(no label)')+' · '+SETS[c.setting]+' · '+VIS[c.visit]+(c.mock?' · FAKE / demo':'');
+ const w=$('qrevwarn');w.textContent='';w.className='';if(c.err){w.className='qerr';w.textContent=c.err;}
+ else if(!c.note){w.className='qinfo';w.textContent=qStatus(c)==='drafting'?'Drafting…':'No draft yet. Tap Redraft.';}
+ if(document.activeElement!==$('qnote'))$('qnote').value=c.note||'';$('qnote').readOnly=!!c.approved;
+ const miss=c.note?DeIDQueue.missingSections(c.note):[],nd=c.note?DeIDQueue.notDocumented(c.note):[];const ndel=$('qnd');ndel.textContent='';
+ if(nd.length)ndel.appendChild(el('div',{cls:'qnd',text:'Not documented: '+nd.join(', ')+'. Fill these in only from what you actually did, or leave them.'}));
+ if(miss.length)ndel.appendChild(el('div',{cls:'qerr'},['Missing sections: '+miss.join(', ')+' ',el('button',{type:'button',text:'Add "Not documented." lines',onclick:()=>{c.note=DeIDQueue.addNotDocumented(c.note,miss);$('qnote').value=c.note;qSave();qRenderRev();}})]));
+ const p=i.p||{};$('qcodes').textContent=p.codes||'–';$('qorders').textContent=p.orders||'–';$('qinstrout').textContent=p.instructions||'–';$('qletter').textContent=p.letter||'–';$('qemwhy').textContent=p.emWhy||'–';
+ $('qsent').textContent=DeIDQueue.buildQueueInput(c);
+ // gaps
+ const g=$('qgaps');g.textContent='';(c.gaps||[]).forEach((q,ix)=>{const inp=el('input',{type:'text',placeholder:'Your answer (leave blank to skip)'});inp.value=(c.answers||{})[ix]||'';inp.disabled=!!c.approved;
+  inp.oninput=()=>{c.answers=c.answers||{};c.answers[ix]=inp.value;qSaveSoon();};g.appendChild(el('div',{cls:'qgap'},[el('div',{text:(ix+1)+'. '+q}),inp]));});
+ if(!(c.gaps||[]).length)g.appendChild(el('div',{cls:'small',text:c.note?'The draft asked no questions.':'–'}));$('qredraftans').disabled=!!c.approved||!(c.gaps||[]).length;
+ // qualifiers
+ const qq=$('qquals');qq.textContent='';i.quals.forEach(q=>{const st=(c.quals||{})[q.phrase];
+  qq.appendChild(el('div',{cls:'qqual'+(st==='ok'?' ok':'')},[el('span',{cls:'qph',text:'"'+q.phrase+'"'}),el('span',{cls:q.inDictation?'small':'qwarn',text:q.inDictation?' in your dictation':' NOT in your dictation'}),
+   el('button',{type:'button',cls:st==='ok'?'ok':'',text:st==='ok'?'✓ Confirmed':'Confirm',disabled:c.approved?'':null,onclick:()=>{c.quals[q.phrase]='ok';qSave();qRenderRev();}}),
+   el('button',{type:'button',text:'Remove from note',disabled:c.approved?'':null,onclick:()=>{c.quals[q.phrase]='removed';c.note=DeIDQueue.removeQualifier(c.note,q.phrase);$('qnote').value=c.note;qSave();qRenderRev();}})]));});
+ Object.keys(c.quals||{}).filter(k=>c.quals[k]==='removed').forEach(k=>qq.appendChild(el('div',{cls:'qqual rm'},[el('span',{cls:'qph',text:'"'+k+'"'}),el('span',{cls:'small',text:' removed (not counted toward the level)'})])));
+ if(!qq.childNodes.length)qq.appendChild(el('div',{cls:'small',text:c.note?'No status or risk words found in the note.':'–'}));
+ // why
+ const wy=$('qwhy');wy.textContent='';const L=i.local;
+ const tr=(a,b,cc)=>el('tr',{},[el('td',{text:a}),el('td',{},[el('span',{cls:'lvl l'+cc,text:b})]),el('td',{text:''})]);
+ const t=el('table',{cls:'qwt'},[el('tr',{},[el('th',{text:'MDM (2 of 3)'}),el('th',{text:'Level'}),el('th',{text:'Evidence in your dictation'})])]);
+ [['Problems',DeIDQueue.PLV[L.problems.level],L.problems],['Data',DeIDQueue.DLV[L.data.level],L.data],['Risk',DeIDQueue.PLV[L.risk.level],L.risk]].forEach(([n,lv,o])=>{const r=tr(n,lv,o.level);r.lastChild.textContent=o.why.join('; ');t.appendChild(r);});
+ wy.appendChild(t);const big=el('div',{cls:'qbig'},[el('span',{cls:'code',text:qSuggested(c,i)}),el('span',{text:' suggested · '+L.familyLabel+' · MDM '+L.mdmLabel+' = '+L.mdmCode+(L.minutes?' · '+L.minutes+' min = '+(L.timeCode||'below time threshold'):' · no minutes dictated')+(i.aiCode?' · AI draft said '+i.aiCode:'')})]);
+ wy.appendChild(big);i.adv.msgs.forEach(m=>wy.appendChild(el('div',{cls:i.adv.lower?'qlow':'qinfo',text:m})));
+ const drops=DeIDQueue.levelDrops(c.dDict,{setting:c.setting,visit:c.visit,removed:i.removed},i.quals.filter(q=>(c.quals||{})[q.phrase]!=='ok').map(q=>q.phrase));
+ wy.appendChild(el('div',{cls:'small',text:'What would lower the level: '+(drops.join(' ')||'nothing pending.')+' This app never suggests words to raise a level.'}));
+ wy.appendChild(el('div',{cls:'small',text:'Rule-based check on this device, not coding advice. Coder to confirm.'}));
+ // final level + approve
+ const sel=$('qfinal');const fam=DeIDQueue.FAM[L.family];const opts=fam.codes.filter((x,ix,a)=>a.indexOf(x)===ix);if(i.aiCode&&!opts.includes(i.aiCode))opts.push(i.aiCode);
+ const want=c.finalCode||qSuggested(c,i);sel.textContent='';opts.forEach(o=>sel.appendChild(el('option',{value:o,text:o+(o===L.code?' (dictation supports)':'')+(o===i.aiCode?' (AI draft)':'')})));sel.value=want;sel.disabled=!!c.approved;
+ const blockers=[];if(!c.note)blockers.push('no draft');if(i.openQuals)blockers.push(i.openQuals+' qualifier'+(i.openQuals>1?'s':'')+' to confirm or remove');if(miss.length)blockers.push('missing sections');
+ $('qapprove').disabled=!!blockers.length||!!c.approved;$('qapprovewhy').textContent=c.approved?'Approved. Copy it into the chart.':blockers.length?'Before you can approve: '+blockers.join(', ')+'.':i.gapsOpen?i.gapsOpen+' question(s) unanswered: fine if the note already says "Not documented."':'';
+ $('qpaste').classList.toggle('hide',!c.approved);$('qredraft').disabled=!!c.approved;$('qunapprove').classList.toggle('hide',!c.approved);
+ $('qcopyfinish').textContent=cfg.queue.wipeOnCopy!==false?'Copy note & finish (wipes this patient)':'Copy note';$('qfinish').classList.toggle('hide',cfg.queue.wipeOnCopy!==false&&!c.copied);
+ const nx=qNextId(c.id);$('qnextp').textContent=nx?'Next: '+qCard(nx).label:'Back to queue';qTick();}
+$('qnote').addEventListener('input',()=>{const c=qCard(QS.cur);if(!c||c.approved)return;c.note=$('qnote').value;qSaveSoon();clearTimeout(capT);capT=setTimeout(qRenderRev,500);});
+$('qfinal').onchange=()=>{const c=qCard(QS.cur);if(!c)return;c.finalCode=$('qfinal').value;c.levelAck=true;qSave();qRenderRev();};
+$('qapprove').onclick=()=>{const c=qCard(QS.cur);if(!c)return;const i=qInfo(c);const code=$('qfinal').value;const f=DeIDQueue.FAM[i.local.family].codes;
+ if(f.indexOf(code)>f.indexOf(i.local.code)&&!confirm('Your dictation supports about '+i.local.code+'. Approve '+code+' anyway? Only do this if the note shows work you really did.'))return;
+ c.finalCode=code;c.levelAck=true;c.approved=true;c.note=$('qnote').value;qSave();qRenderRev();qmsg('Approved. Copy it into the chart.',2500);};
+$('qunapprove').onclick=()=>{const c=qCard(QS.cur);if(!c)return;c.approved=false;c.copied=false;qSave();qRenderRev();};
+$('qrevback').onclick=()=>qShow('list');$('qeditinputs').onclick=()=>{const c=qCard(QS.cur);if(c)qEdit(c.id);};
+$('qredraft').onclick=()=>{const c=qCard(QS.cur);if(!c)return;if(c.note&&!confirm('Redraft? Your edits to this draft are replaced.'))return;c.note='';qDraft(c);};
+$('qredraftans').onclick=()=>{const c=qCard(QS.cur);if(!c)return;const lines=[];(c.gaps||[]).forEach((q,ix)=>{const a=String((c.answers||{})[ix]||'').trim();if(a)lines.push('- '+q.replace(/^Confirm:\s*/i,'')+' '+a);});
+ if(!lines.length){qmsg('Type at least one answer first.',2500);return;}if(c.note&&!confirm('Redraft with your answers? Your edits to this draft are replaced.'))return;
+ c.dict=c.dict.replace(/\s*$/,'')+'\n\nMy answers to the draft questions:\n'+lines.join('\n');c.dDict=qDeid(c.dict);c.answers={};c.note='';qDraft(c);};
+function qNextId(id){const rest=QS.cards.filter(c=>c.id!==id);const r=rest.find(c=>c.note&&!c.approved&&qStatus(c)!=='drafting')||rest[0];return r?r.id:null;}
+function qFinish(c){qStopTimer();const a=DeIDQueue.finishCard(Object.assign({},c,{aiCode:qInfo(c).aiCode,localCode:qInfo(c).local.code}));
+ // wipe: drop the card and every text field it held; only the non-PHI audit line stays
+ Object.keys(c).forEach(k=>{if(typeof c[k]==='string')c[k]='';});QS.cards=QS.cards.filter(x=>x!==c);QS.audit.push(a);QS.cur=null;$('qnote').value='';qSave();qBtnCount();}
+$('qcopyfinish').onclick=async()=>{const c=qCard(QS.cur);if(!c||!c.approved)return;await copyText(c.note);c.copied=true;
+ if(cfg.queue.wipeOnCopy!==false){const nx=qNextId(c.id);qFinish(c);qmsg('Copied. Paste it into the chart. This patient was wiped from the device.',5000);if(nx)qOpenRev(nx);else qShow('list');}
+ else{qSave();qRenderRev();qmsg('Copied. Paste it into the chart, then tap Finish.',4000);}};
+$('qfinish').onclick=()=>{const c=qCard(QS.cur);if(!c)return;if(!c.copied&&!confirm('Finish without copying? The note is wiped from this device.'))return;const nx=qNextId(c.id);qFinish(c);qmsg('Finished. Text wiped.',3000);if(nx)qOpenRev(nx);else qShow('list');};
+document.querySelectorAll('[data-qcopy]').forEach(b=>b.onclick=async()=>{const c=qCard(QS.cur);if(!c)return;const k=b.dataset.qcopy;const p=DeIDQueue.parseReply(c.reply||'');
+ const v=DeIDQueue.COPY[k]?DeIDQueue.extractSections(c.note,DeIDQueue.COPY[k]):({codes:p.codes,letter:p.letter,instructions:p.instructions,orders:p.orders})[k]||'';if(!v.trim()){qmsg('Nothing in that section.',2000);return;}
+ await copyText(v);qmsg('Copied '+b.textContent.replace(/^Copy\s*/,'')+'.',2000);});
+$('qnextp').onclick=()=>{const c=qCard(QS.cur);const nx=c?qNextId(c.id):null;if(nx)qOpenRev(nx);else qShow('list');};
+// ---------- toolbar ----------
+$('queue').onclick=qOpen;$('qclose').onclick=qClose;$('qadd').onclick=qNew;$('qset').onclick=()=>{openSettings();setTimeout(()=>{const f=$('qsettings');if(f)f.scrollIntoView();},50);};
+$('qdemomode').onchange=()=>{QS.demo=$('qdemomode').checked;if(QS.demo&&!QS.cards.length)qLoadDemo();qSave();qRender();};
+function qLoadDemo(){DeIDQueue.DEMO.forEach(d=>{if(QS.cards.some(c=>c.label===d.label&&c.mock))return;const c=DeIDQueue.newCard(Object.assign({},d,{mock:true}));c.dDict=qDeid(c.dict);c.dReport=qDeid(c.report);QS.cards.push(c);});qSave();qBtnCount();qRender();}
+$('qloaddemo').onclick=qLoadDemo;
+$('qinstr').addEventListener('input',()=>{prefs.instr.queue=$('qinstr').value;persistPrefs();});
+$('qinstrreset').onclick=()=>{delete prefs.instr.queue;$('qinstr').value=qInstr();persistPrefs();};
+document.addEventListener('visibilitychange',()=>{if(QS.view!=='rev'||!$('qv').classList.contains('on'))return;if(document.visibilityState==='hidden'){qStopTimer();qSave();}else qStartTimer();});
+window.addEventListener('pagehide',()=>{qStopTimer();qSave();});
+qRestore();
 if(!remember)try{localStorage.removeItem(LS);}catch(e){}
 if(!rememberInstr)try{localStorage.removeItem(PLS);}catch(e){}
 preloadMsal();micStatus();
