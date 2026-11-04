@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="DeID Pad">
 <meta name="theme-color" content="#14324f"><link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-180.png">
-<meta name="referrer" content="no-referrer"><meta name="deidpad-version" content="1.4.0-queue"><title>DeID Pad</title>
+<meta name="referrer" content="no-referrer"><meta name="deidpad-version" content="1.5.0-scan"><title>DeID Pad</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font:14px system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f6f8;color:#1b2430;height:100vh;display:flex;flex-direction:column}
 header{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#14324f;color:#fff;flex-wrap:wrap}
@@ -89,7 +89,7 @@ header{padding-top:max(8px,env(safe-area-inset-top))}
 </style></head><body>
 <header><h1>DeID Pad</h1>
 <button type="button" class="rec" id="rec" title="Start ambient dictation">&#9679; Record</button><button type="button" id="stop" disabled>&#9632; Stop</button><span id="micstat"></span>
-<button type="button" id="scan" title="Scan a document: on-device OCR, nothing is uploaded">&#128247; Scan</button>
+<button type="button" id="scan" title="Scan a paper report with the camera: text is read on this device, nothing is uploaded">&#128247; Scan with camera</button>
 <span id="recind"><i></i>REC <span id="elapsed">00:00</span></span><span id="txstat"></span><button type="button" id="retry" class="hide">Retry failed</button>
 <button type="button" class="p" id="copy">Copy output</button><button type="button" id="clear">Clear all</button><button type="button" id="tog">Show what was removed</button>
 <label><input type="checkbox" id="fac"> Remove facility names</label>
@@ -128,10 +128,10 @@ header{padding-top:max(8px,env(safe-area-inset-top))}
 <aside id="removed"></aside></main>
 
 <div id="scanv" role="dialog" aria-label="Scan document"><div class="scard">
-<div class="sbar"><b style="font-size:15px">Scan document</b><span class="small">Text recognition runs on this device. Images stay in memory only (never saved). Text you insert into the text box is saved with the draft until Clear all.</span><button type="button" id="scanclose" class="p">Done</button></div>
+<div class="sbar"><b style="font-size:15px">Scan document</b><span class="small" id="scanpriv"><b>Privacy:</b> text is read on this device (no cloud OCR). Photos stay in memory only, are never saved or uploaded, and are wiped when you insert all pages or tap Done. Text you insert is saved with the draft until Clear all.</span><button type="button" id="scanclose" class="p">Done</button></div>
 <div class="sbar">
- <label class="btn p" for="scancam">&#128247; Camera / add page</label><input type="file" id="scancam" class="vh" accept="image/*" capture="environment">
- <label class="btn" for="scanpick">Choose photo / image</label><input type="file" id="scanpick" class="vh" accept="image/*" multiple>
+ <label class="btn p" for="scancam" id="scancamlbl">&#128247; Take photo</label><input type="file" id="scancam" class="vh" accept="image/*" capture="environment">
+ <label class="btn" for="scanpick">&#128444; Choose from Photos</label><input type="file" id="scanpick" class="vh" accept="image/*" multiple>
  <button type="button" id="rotl" title="Rotate left" aria-label="Rotate left">&#10226;</button><button type="button" id="rotr" title="Rotate right" aria-label="Rotate right">&#10227;</button>
  <label title="If the text reads poorly, try the other orientations and keep the best"><input type="checkbox" id="scanauto" checked> Auto-rotate</label>
  <label title="Grayscale + contrast stretch before reading"><input type="checkbox" id="scanenh" checked> Enhance</label>
@@ -143,7 +143,8 @@ header{padding-top:max(8px,env(safe-area-inset-top))}
 <div class="sbody"><div id="stage"><div id="drophint">Tap <b>Camera / add page</b> to photograph a document, choose an image, paste an image (&#8984;V / Ctrl+V) or drag &amp; drop it here. Add several pages one after another.</div></div>
 <div class="sside">
  <textarea id="scantext" spellcheck="false" autocomplete="off" placeholder="Recognized text appears here (editable). Insert uses the selected words, or this text if nothing is selected."></textarea>
- <div class="sbar" style="margin-top:6px"><button type="button" id="insall">Insert all pages</button><span class="small">Tap a word to select it, drag across words to select a range, double-tap selects the whole line. Orange boxes = low confidence: check them.</span></div>
+ <div class="sbar" style="margin-top:6px"><button type="button" id="insall">Insert all pages</button><button type="button" class="ok" id="insboth" title="Insert into the DeID text box and start a Review-queue patient with this as the outside report">Insert + Review queue (outside report)</button><span class="small">Tap a word to select it, drag across words to select a range, double-tap selects the whole line. Orange boxes = low confidence: check them.</span></div>
+ <div class="small" style="margin-top:6px"><b>De-identified preview</b> (on this device; what the app will use):</div><textarea id="scandeid" readonly spellcheck="false" style="height:22vh;min-height:120px;background:#f4f8f4" placeholder="De-identified text appears here after reading."></textarea>
 </div></div></div></div>
 
 <div id="qv" role="dialog" aria-label="Review queue"><div class="qcard">
@@ -1255,7 +1256,8 @@ async function getOcr(){if(SC.worker)return SC.worker;if(!SC.wp)SC.wp=(async()=>
    errorHandler:()=>{}});
   await w.setParameters({preserve_interword_spaces:'1',user_defined_dpi:'300'});return w;})();
  try{SC.worker=await SC.wp;return SC.worker;}catch(e){SC.wp=null;throw e;}}
-function loadImg(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file);const im=new Image();
+async function loadImg(file){if(window.createImageBitmap){try{const bm=await createImageBitmap(file,{imageOrientation:'from-image'});return {naturalWidth:bm.width,naturalHeight:bm.height,width:bm.width,height:bm.height,_bm:bm,draw:bm};}catch(e){}}
+ return new Promise((res,rej)=>{const u=URL.createObjectURL(file);const im=new Image();
  const done=()=>URL.revokeObjectURL(u);im.onload=()=>{done();res(im);};im.onerror=()=>{done();rej(new Error('could not read this image'));};im.src=u;});}
 function drawRot(src,rot,max,enh){const r=((rot%360)+360)%360,f=max?Math.min(1,max/Math.max(src.width,src.height)):1,W=Math.round(src.width*f),H=Math.round(src.height*f);
  const c=document.createElement('canvas');c.width=r%180?H:W;c.height=r%180?W:H;const x=c.getContext('2d',{willReadFrequently:true});
@@ -1277,16 +1279,16 @@ async function readPage(pg,auto){const g=SC.gen;const w=await getOcr();if(g!==SC
 function queueRead(pg,auto){pg.state='queued';SC.pend++;renderStrip();const g=SC.gen;
  SC.q=SC.q.then(()=>readPage(pg,auto)).catch(e=>{if(g===SC.gen){pg.state='error';say('Scan error: '+(e&&e.message||e));}})
   .then(()=>{if(g!==SC.gen)return;SC.pend=Math.max(0,SC.pend-1);if(!SC.pend)scanProg(null);else scanProg(0,'Waiting…');renderStrip();});}
-function renderStrip(){const el=$('pages');el.textContent='';SC.pages.forEach((pg,i)=>{const b=document.createElement('button');b.type='button';
+function renderStrip(){const cl=document.getElementById('scancamlbl');if(cl)cl.innerHTML=SC.pages.length?'&#128247; Add another page':'&#128247; Take photo';const el=$('pages');el.textContent='';SC.pages.forEach((pg,i)=>{const b=document.createElement('button');b.type='button';
  b.textContent='Page '+(i+1)+(pg.state==='done'?' · '+pg.words.length+' words, '+pg.conf+'%':pg.state==='error'?' · error':' · reading…');
  b.className=i===SC.cur?'cur':'';b.onclick=()=>{SC.sel.clear();showPage(i);};el.appendChild(b);});
  $('delpage').disabled=$('rotl').disabled=$('rotr').disabled=$('rescan').disabled=SC.cur<0;}
 function showPage(i){SC.cur=i;const pg=SC.pages[i],st=$('stage');st.textContent='';renderStrip();
- if(!pg){const h=document.createElement('div');h.id='drophint';h.innerHTML='Tap <b>Camera / add page</b> to photograph a document, choose an image, paste an image or drag &amp; drop it here.';st.appendChild(h);$('scantext').value='';updSel();return;}
+ if(!pg){const h=document.createElement('div');h.id='drophint';h.innerHTML='Tap <b>Camera / add page</b> to photograph a document, choose an image, paste an image or drag &amp; drop it here.';st.appendChild(h);$('scantext').value='';scanDeidPrev();updSel();return;}
  const wrap=document.createElement('div');wrap.id='imgwrap';wrap.appendChild(pg.canvas);const bx=document.createElement('div');bx.id='boxes';wrap.appendChild(bx);st.appendChild(wrap);
  const W=pg.canvas.width,H=pg.canvas.height;(pg.words||[]).forEach(w=>{const e=document.createElement('span');e.className='w'+(w.conf<60?' lc':'');e.dataset.i=w.i;
   e.style.left=(w.bbox.x0/W*100)+'%';e.style.top=(w.bbox.y0/H*100)+'%';e.style.width=((w.bbox.x1-w.bbox.x0)/W*100)+'%';e.style.height=((w.bbox.y1-w.bbox.y0)/H*100)+'%';bx.appendChild(e);});
- $('scantext').value=pg.text||'';bindBoxes(bx);updSel();}
+ $('scantext').value=pg.text||'';scanDeidPrev();bindBoxes(bx);updSel();}
 function updSel(){const pg=SC.pages[SC.cur];document.querySelectorAll('#boxes .w').forEach(e=>e.classList.toggle('s',SC.sel.has(+e.dataset.i)));
  $('selinfo').textContent=pg&&pg.state==='done'?(SC.sel.size?SC.sel.size+' of '+pg.words.length+' words selected':'0 of '+pg.words.length+' selected (uses text box)'):'';}
 function bindBoxes(bx){let anchor=null,base=null,add=true,moved=false,down=null,lastTap={i:-1,t:0};
@@ -1301,23 +1303,27 @@ function bindBoxes(bx){let anchor=null,base=null,add=true,moved=false,down=null,
  bx.addEventListener('pointerup',up);bx.addEventListener('pointercancel',()=>{down=null;});}
 async function addScanFiles(files){files=[].slice.call(files||[]);if(!files.length)return;openScan();
  const imgs=files.filter(DeIDTx.isScanImage);if(imgs.length<files.length)say(files.some(f=>/pdf/i.test(f.type||f.name))?'PDF files cannot be read directly: take a screenshot of the page or export it as an image, then add that.':'Skipped a file that is not an image.',6000);
- for(const f of imgs){let im;try{im=await loadImg(f);}catch(e){say('Could not open '+(f.name||'image')+' (try a JPEG/PNG screenshot)',5000);continue;}
+ for(const f of imgs){let im;try{im=await loadImg(f);}catch(e){say(/hei[cf]/i.test((f.type||'')+(f.name||''))?'This browser could not open the HEIC photo. Use Take photo in Safari, or set iPhone Settings > Camera > Formats > Most Compatible.':'Could not open '+(f.name||'image')+' (try a JPEG/PNG screenshot)',7000);continue;}
   const fit=DeIDTx.scanFit(im.naturalWidth||im.width,im.naturalHeight||im.height,2000);const src=document.createElement('canvas');src.width=fit.w;src.height=fit.h;
-  const x=src.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,fit.w,fit.h);x.imageSmoothingQuality='high';x.drawImage(im,0,0,fit.w,fit.h);im.src='';im=null;
+  const x=src.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,fit.w,fit.h);x.imageSmoothingQuality='high';x.drawImage(im._bm||im,0,0,fit.w,fit.h);if(im._bm)try{im._bm.close();}catch(e){}else im.src='';im=null;
   const pg={src,canvas:drawRot(src,0,0,$('scanenh').checked),rot:0,words:[],text:'',conf:0,state:'queued'};SC.pages.push(pg);SC.sel.clear();showPage(SC.pages.length-1);queueRead(pg,true);}}
 function openScan(){$('scanv').classList.add('on');}
 function scanInsertText(pg,i,useSel){const t=useSel&&SC.sel.size?DeIDTx.wordsText(pg.words,SC.sel):$('scantext').value;return t;}
-function insertScan(list){if(scanHook){scanHook(list);return;}let v=$('in').value,n=0;list.forEach(([text,num])=>{const nv=DeIDTx.scanInsert(v,text,num);if(nv!==v)n++;v=nv;});
+function insertScan(list){if(scanHook){scanHook(list);scanWipe();return;}let v=$('in').value,n=0;list.forEach(([text,num])=>{const nv=DeIDTx.scanInsert(v,text,num);if(nv!==v)n++;v=nv;});
  if(!n){say('Nothing to insert yet',2000);return;}$('in').value=v;$('in').scrollTop=$('in').scrollHeight;go();say('Inserted '+n+' scanned page'+(n>1?'s':'')+' into the text box (de-identified)',3000);}
-$('scan').onclick=openScan;$('scanclose').onclick=()=>$('scanv').classList.remove('on');
+$('scan').onclick=openScan;$('scanclose').onclick=()=>{if(SC.pages.some(pg=>String(pg.text||'').trim())&&!confirm('Close the scanner and wipe the photos? Text you have not inserted will be lost.'))return;scanWipe();scanHook=null;$('scanv').classList.remove('on');};
 ['scancam','scanpick'].forEach(id=>$(id).addEventListener('change',e=>{const f=[].slice.call(e.target.files||[]);e.target.value='';addScanFiles(f);}));
-$('scantext').addEventListener('input',()=>{const pg=SC.pages[SC.cur];if(pg)pg.text=$('scantext').value;});
+function scanDeidPrev(){const t=$('scantext').value;$('scandeid').value=t.trim()?DeID.run(t,{alwaysRemove:$('names').value.split(','),facilities:true}).text:'';}
+$('scantext').addEventListener('input',()=>{const pg=SC.pages[SC.cur];if(pg)pg.text=$('scantext').value;scanDeidPrev();});
 $('selall').onclick=()=>{const pg=SC.pages[SC.cur];if(!pg)return;SC.sel=new Set(pg.words.map(w=>w.i));updSel();};
 $('selnone').onclick=()=>{SC.sel.clear();updSel();};
 $('copysel').onclick=async()=>{const pg=SC.pages[SC.cur];if(!pg)return;const t=SC.sel.size?DeIDTx.wordsText(pg.words,SC.sel):$('scantext').value;if(!t.trim()){say('Nothing to copy',1500);return;}
  await copyText(t);say('Copied '+(SC.sel.size?SC.sel.size+' words':'page text')+'. Contains identifiers: paste only into secure apps.',3000);};
 $('inssel').onclick=()=>{const pg=SC.pages[SC.cur];if(!pg)return;insertScan([[SC.sel.size?DeIDTx.wordsText(pg.words,SC.sel):$('scantext').value,SC.cur+1]]);};
-$('insall').onclick=()=>{insertScan(SC.pages.map((pg,i)=>[pg.text,i+1]));};
+$('insall').onclick=()=>{if(SC.pend){say('Still reading, wait for the progress bar to finish',2500);return;}const l=SC.pages.map((pg,i)=>[pg.text,i+1]);if(!l.some(x=>String(x[0]||'').trim())){say('Nothing to insert yet',2000);return;}insertScan(l);scanWipe();$('scanv').classList.remove('on');};
+$('insboth').onclick=()=>{if(SC.pend){say('Still reading, wait for the progress bar to finish',2500);return;}const l=SC.pages.map((pg,i)=>[pg.text,i+1]);if(!l.some(x=>String(x[0]||'').trim())){say('Nothing to insert yet',2000);return;}
+ const h=scanHook;scanHook=null;insertScan(l);let r='';l.forEach(([t,n])=>{r=DeIDTx.scanInsert(r,t,n);});scanWipe();$('scanv').classList.remove('on');
+ if(h){const q=$('qreport').value.trim();$('qreport').value=(q?q+'\n\n':'')+r.trim();}else{qOpen();qNew();$('qreport').value=r.trim();}qRenderCap();qmsg('Scanned text added to the text box and to the outside report. Add a case label and your dictation.',5000);};
 const rot=d=>{const pg=SC.pages[SC.cur];if(!pg)return;pg.rot=((pg.rot+d)%360+360)%360;SC.sel.clear();queueRead(pg,false);};
 $('rotl').onclick=()=>rot(-90);$('rotr').onclick=()=>rot(90);$('rescan').onclick=()=>{const pg=SC.pages[SC.cur];if(pg){SC.sel.clear();queueRead(pg,false);}};
 $('scanenh').onchange=()=>{const pg=SC.pages[SC.cur];if(pg){SC.sel.clear();queueRead(pg,false);}};
@@ -1373,7 +1379,7 @@ $('autoclear').onchange=()=>{autoH=+$('autoclear').value||0;try{if(autoH)localSt
 setInterval(()=>{if(autoH>0&&savedAt&&Date.now()-savedAt>autoH*3600e3&&!active&&!pending){clearAll();say('Draft auto-cleared (no edits for '+autoH+' h)',6000);}},60000);
 // Refresh / close / tab switch: save immediately (no wiping). Warn only when something can't be saved (audio, held chunks, scanned images) or the save failed.
 window.addEventListener('pagehide',saveNow);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveNow();});
-window.addEventListener('beforeunload',e=>{saveNow();if(active||pending||failed.length||SC.pages.length||saveErr){e.preventDefault();e.returnValue='';return '';}});
+window.addEventListener('beforeunload',e=>{saveNow();if(active||pending||failed.length||SC.pages.some(pg=>String(pg.text||'').trim())||saveErr){e.preventDefault();e.returnValue='';return '';}});
 restoreDraft();
 // ---- Review queue (Phase 1 batch): per-patient cards -> AI draft -> review -> copy & finish ----
 // State lives in localStorage key deidpad.draft.queue.v1 (allowlisted fields, no API keys). "Clear all" removes it.
