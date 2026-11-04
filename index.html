@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="DeID Pad">
 <meta name="theme-color" content="#14324f"><link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-180.png">
-<meta name="referrer" content="no-referrer"><meta name="deidpad-version" content="1.5.0-scan"><title>DeID Pad</title>
+<meta name="referrer" content="no-referrer"><meta name="deidpad-version" content="1.6.0-llm"><title>DeID Pad</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font:14px system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f6f8;color:#1b2430;height:100vh;display:flex;flex-direction:column}
 header{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#14324f;color:#fff;flex-wrap:wrap}
@@ -25,6 +25,11 @@ textarea{flex:1;width:100%;resize:none;font:13px/1.45 ui-monospace,Menlo,Consola
 #recind{display:none;align-items:center;gap:6px;font-weight:700;color:#ffb3b3;font-variant-numeric:tabular-nums}
 #recind.on{display:flex}#recind i{width:11px;height:11px;border-radius:50%;background:#ff4040;animation:pl 1s infinite}
 @keyframes pl{50%{opacity:.25}}#txstat{font-size:12px;color:#cfe3ff}
+#llmbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px;padding:6px;border:1px solid #c9d6e3;border-radius:6px;background:#f5f9fc;font-size:13px}#llmbar select{max-width:220px;font-size:13px;padding:4px}#llmbar details{flex-basis:100%}#llmonce{width:100%;min-height:50px;font-size:12px}
+#llmsend,.qllm{min-height:44px;font-weight:700}.llmbad{background:#fde8e8;border:1px solid #c0392b;color:#7a1b12;border-radius:6px;padding:6px 8px;margin-top:6px;font-size:13px}.llmbad pre{white-space:pre-wrap;margin:4px 0}.llmok{background:#e8f6ec;border:1px solid #2e8b57;border-radius:6px;padding:6px 8px;margin-top:6px;font-size:13px}
+.lmodal{position:fixed;inset:0;background:rgba(10,20,30,.45);display:none;z-index:12;overflow:auto}.lmodal.on{display:block}.lmodal .card{background:#fff;max-width:720px;margin:24px auto;border-radius:8px;padding:14px 18px;box-shadow:0 8px 30px rgba(0,0,0,.25);font-size:13px}.lmodal fieldset{border:1px solid #d3dbe4;border-radius:6px;margin:10px 0;padding:8px 12px}.lmodal legend{font-weight:700}
+.llmrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0;font-size:12px}.llmdn{font-weight:700}.llmdu{color:#456;word-break:break-all;flex:1 1 200px}#llmptext{width:100%;min-height:160px;font-size:12px}
+#llmtoast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#14324f;color:#fff;padding:10px 16px;border-radius:20px;font-size:15px;z-index:20;display:none;max-width:90vw;text-align:center}#llmtoast.on{display:block}#llmtoast.bad{background:#b03a2e}
 #settings{position:fixed;inset:0;background:rgba(10,20,30,.45);display:none;z-index:9;overflow:auto}
 #settings.on{display:block}#settings .card{background:#fff;max-width:720px;margin:24px auto;border-radius:8px;padding:14px 18px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
 #settings fieldset{border:1px solid #d3dbe4;border-radius:6px;margin:10px 0;padding:8px 12px}#settings legend{font-weight:700;font-size:13px}
@@ -110,7 +115,10 @@ header{padding-top:max(8px,env(safe-area-inset-top))}
  <button type="button" id="signin">Sign in to M365</button><button type="button" class="ok" id="complete">&#10003; Complete &rarr; OneDrive</button><span id="m365stat"></span>
 </div>
 <main><section><h2>Paste (raw clinical text) or dictate</h2><textarea id="in" spellcheck="false" autocomplete="off" placeholder="Paste note, labs, imaging, referral... or press Record"></textarea></section>
-<section><h2>De-identified output (editable)</h2><textarea id="out" spellcheck="false" autocomplete="off"></textarea></section>
+<section><h2>De-identified output (editable)</h2><textarea id="out" spellcheck="false" autocomplete="off"></textarea><div id="llmbar"><b>Send to my AI:</b> <select id="llm" aria-label="AI service"></select><select id="llmdest" aria-label="Project, gem or space"></select><select id="llmprompt" aria-label="Saved instruction"></select>
+ <button type="button" id="llmsend" class="p">Send to <span class="llmname">ChatGPT</span> &#9656;</button><button type="button" id="llmcfg">Destinations &amp; instructions&hellip;</button>
+ <details><summary class="small">One-time instruction (optional, added before the text this time only; no patient details)</summary><textarea id="llmonce" spellcheck="false"></textarea></details>
+ <div class="small">One tap: checks again for identifiers, copies the de-identified text (plus the chosen instruction) and opens your own account. Raw text is never sent.</div><div id="llmmsg" role="status"></div></div></section>
 <section id="soapsec" class="hide"><h2>AI note (from de-identified text only) <button type="button" id="gensoap" class="p">Generate note</button><button type="button" id="copysoap">Copy</button></h2>
  <div class="ctl"><label>Template <select id="tpl"><option value="soap">SOAP (Established patient)</option><option value="em">Vascular Follow-up / New Patient (E/M)</option></select></label>
   <label title="Carry prior exam forward as stable unless changed; describe the progression you list; fresh wording."><input type="checkbox" id="progmode"> Progression mode</label>
@@ -166,12 +174,12 @@ header{padding-top:max(8px,env(safe-area-inset-top))}
    <div id="qheard" class="qheard"></div></div>
   <div><div class="qh">Outside report (optional) <button type="button" id="qscan">&#128247; Scan document</button></div>
    <textarea id="qreport" spellcheck="false" placeholder="Paste outside records or a prior note, or scan a page. It is de-identified on this device before anything is sent."></textarea></div></div>
- <details open><summary>What will be sent to the AI (de-identified on this device)</summary><pre id="qprev" class="qpre"></pre></details>
+ <details open><summary>What will be sent to the AI (de-identified on this device)</summary><pre id="qprev" class="qpre"></pre></details><div><button type="button" id="qllmprev" class="qllm">Send de-identified dictation + report to <span class="llmname">ChatGPT</span> &#9656;</button> <span class="small">(uses the AI, project and instruction chosen under the main de-identified box)</span><div id="qllmmsg1" role="status"></div></div>
  <div class="qbtns"><button type="button" id="qsavenext" class="p">Save &amp; add next patient</button><button type="button" id="qsavedraft" class="ok">Save &amp; back to queue</button><button type="button" id="qcapcancel">Cancel</button><button type="button" id="qcapdel" class="hide">Delete this patient</button></div></div>
 <div id="qrev" class="hide">
  <div class="qrevtop"><button type="button" id="qrevback">&larr; Queue</button><b id="qrevtitle"></b><span id="qtimer" class="qtimer"></span><button type="button" id="qeditinputs">Edit dictation</button><button type="button" id="qredraft">Redraft</button></div>
  <div class="qrevcols"><div class="qleft"><div id="qrevwarn"></div>
-   <label class="small" for="qnote">Draft note (edit freely; this is what gets copied)</label><textarea id="qnote" spellcheck="true"></textarea><div id="qnd"></div>
+   <label class="small" for="qnote">Draft note (edit freely; this is what gets copied)</label><textarea id="qnote" spellcheck="true"></textarea><div><button type="button" id="qllmnote" class="qllm">Send draft to <span class="llmname">ChatGPT</span> &#9656;</button><div id="qllmmsg2" role="status"></div></div><div id="qnd"></div>
    <details><summary>Codes, staff orders, patient instructions, referring letter (from the draft)</summary><div class="qh">Codes (coder to confirm)</div><pre id="qcodes" class="qpre"></pre><div class="qh">Staff orders</div><pre id="qorders" class="qpre"></pre><div class="qh">Patient instructions</div><pre id="qinstrout" class="qpre"></pre><div class="qh">Letter to referring doctor</div><pre id="qletter" class="qpre"></pre></details>
    <details><summary>What was sent to the AI</summary><pre id="qsent" class="qpre"></pre></details></div>
   <div class="qright">
@@ -747,6 +755,27 @@ return {DRAFT_KEY,DRAFT_PREFS_KEY,DRAFT_TEXT,DRAFT_BOOL,draftPick,packDraft,unpa
 if(typeof module!=='undefined')module.exports=DeIDTx;
 /*TX-END*/
 </script>
+<div id="llmack" class="lmodal" role="dialog" aria-label="Before sending to a consumer AI"><div class="card"><h2 style="margin:0 0 6px;font-size:16px">Before you send to <span id="llmackprov"></span></h2>
+<ul><li><b>Consumer ChatGPT, Gemini, Grok and Perplexity accounts generally have no BAA</b> (business associate agreement). Do not treat them as HIPAA-covered.</li>
+<li>De-identification here is <b>rule-based, not certified</b> (not an expert determination). It can miss things. Read the text before you send it.</li>
+<li>Only the de-identified text is copied. A second check runs first and blocks the send if names, dates of birth, record numbers or phone numbers are still found.</li>
+<li><b>Turn off model training / history in each account:</b><ul>
+<li>ChatGPT: Settings → Data controls → turn off "Improve the model for everyone". <a href="https://help.openai.com/en/articles/7730893-data-controls-faq" target="_blank" rel="noopener">OpenAI help</a></li>
+<li>Gemini: turn off "Keep Activity". <a href="https://myactivity.google.com/product/gemini" target="_blank" rel="noopener">Gemini Apps Activity</a> · <a href="https://support.google.com/gemini/answer/13594961" target="_blank" rel="noopener">Privacy Hub</a></li>
+<li>Grok: Settings → Data → turn off "Improve the Model" (app: Settings → Data Controls). <a href="https://x.ai/legal/faq" target="_blank" rel="noopener">xAI FAQ</a></li>
+<li>Perplexity: Account settings → Preferences → turn off "AI data retention". <a href="https://www.perplexity.ai/help-center/en/articles/11564572-data-collection-at-perplexity" target="_blank" rel="noopener">Perplexity help</a></li></ul></li></ul>
+<p>This notice shows once. You can show it again (or before every send) under Destinations &amp; instructions.</p>
+<button type="button" id="llmackok" class="p">I understand: copy &amp; open</button> <button type="button" id="llmackno">Cancel</button></div></div>
+<div id="llmset" class="lmodal" role="dialog" aria-label="AI destinations"><div class="card"><h2 style="margin:0 0 6px;font-size:16px">Send to my AI: destinations &amp; instructions</h2>
+<div class="small">Saved on this device. They hold no patient information: only names, web addresses and your instruction text.</div>
+<div id="llmdests"></div>
+<fieldset><legend>Saved instructions (added before the de-identified text)</legend><div id="llmprompts"></div>
+<button type="button" id="llmaddprompt" class="ok">+ Add instruction</button> <button type="button" id="llmaddappa">+ Add my Appendix A instruction</button>
+<div id="llmpedit" class="hide"><label class="small">Name <input id="llmpname" type="text" size="30"></label><textarea id="llmptext" spellcheck="false"></textarea><button type="button" id="llmpsave" class="p">Save instruction</button> <button type="button" id="llmpcancel">Cancel</button></div></fieldset>
+<fieldset><legend>Options</legend>
+<label><input type="checkbox" id="llmprefill"> When sending to a plain new chat (not a project) and the text is short (≤1500 characters), also put it in the web address so ChatGPT fills it in / Grok and Perplexity start answering. Projects, gems and spaces always use copy &amp; paste.</label><br>
+<label><input type="checkbox" id="llmconfirm"> Show the safety notice before every send</label> <button type="button" id="llmresetack">Show the safety notice again next time</button></fieldset>
+<button type="button" class="p" id="llmsetclose">Done</button></div></div><div id="llmtoast" role="status" aria-live="polite"></div>
 <script>
 /*QUEUE-START*/
 // Review queue (Phase 1 batch). Pure logic, no DOM: card storage, the drafting request (Appendix A),
@@ -1038,6 +1067,52 @@ return {KEY,VER,TARGET_SEC,OPENAI,SETTINGS,VISITS,APPENDIX_A,ATTESTATION,FAM,LV,
 })(typeof DeIDTx!=='undefined'?DeIDTx:require('./tx.js'));
 if(typeof module!=='undefined')module.exports=DeIDQueue;
 /*QUEUE-END*/
+</script>
+<script>
+// ---- Send to LLM (v1.6.0): copy DE-IDENTIFIED text to the clipboard and open the user's own ChatGPT / Gemini / Grok / Perplexity
+// project, gem or space. Pure helpers (no DOM) so they can be unit-tested in Node. Saved settings hold NO patient text.
+var DeIDExport=(function(){
+const KEY='deidpad.llmexport.v1';
+// home: the plain chat page. q: URL prefill template (only on the home page; project/gem/space pages ignore it). auto: submits on load.
+const LLMS={
+ chatgpt:{name:'ChatGPT',home:'https://chatgpt.com/',q:'https://chatgpt.com/?q=',auto:false,hosts:['chatgpt.com','chat.openai.com'],
+  example:'https://chatgpt.com/g/g-p-XXXXXXXX-my-notes/project',privacy:'https://help.openai.com/en/articles/7730893-data-controls-faq',
+  steps:'ChatGPT: account menu → Settings → Data controls → turn OFF "Improve the model for everyone" (iPhone app: sidebar → profile → Data controls). Temporary Chat is not used for training and is not kept in history (may be kept up to 30 days for safety).'},
+ gemini:{name:'Gemini',home:'https://gemini.google.com/app',q:null,auto:false,hosts:['gemini.google.com'],
+  example:'https://gemini.google.com/gem/XXXXXXXXXXXX',privacy:'https://myactivity.google.com/product/gemini',
+  steps:'Gemini: open myactivity.google.com/product/gemini → turn OFF "Keep Activity" (Gemini Apps Activity). Google says it still uses chats to respond and for safety even when this is off.'},
+ grok:{name:'Grok',home:'https://grok.com/',q:'https://grok.com/?q=',auto:true,hosts:['grok.com'],
+  example:'https://grok.com/project/XXXXXXXX',privacy:'https://x.ai/legal/faq',
+  steps:'Grok: grok.com → Settings → Data → turn OFF "Improve the Model" (iPhone app: Settings → Data Controls). Private Chat (ghost icon) is not used for training.'},
+ perplexity:{name:'Perplexity',home:'https://www.perplexity.ai/',q:'https://www.perplexity.ai/search?q=',auto:true,hosts:['perplexity.ai','www.perplexity.ai'],
+  example:'https://www.perplexity.ai/spaces/my-notes-XXXXXX',privacy:'https://www.perplexity.ai/help-center/en/articles/11564572-data-collection-at-perplexity',
+  steps:'Perplexity: Account settings → Preferences → turn OFF "AI data retention" (applies only to data after you opt out). Incognito searches are not stored.'}};
+const ORDER=['chatgpt','gemini','grok','perplexity'];
+const MAX_URL_TEXT=1500; // characters of payload allowed in a URL prefill; above this we copy + open the page only
+const uid=()=>Math.random().toString(36).slice(2,10);
+function validUrl(llm,url){const L=LLMS[llm];if(!L)return false;let u;try{u=new URL(String(url||'').trim());}catch(e){return false;}
+ return u.protocol==='https:'&&L.hosts.includes(u.hostname)&&!u.username&&!u.password;}
+function isHome(llm,url){const L=LLMS[llm];try{const u=new URL(url),h=new URL(L.home);return u.hostname.replace(/^www\./,'')===h.hostname.replace(/^www\./,'')&&(u.pathname==='/'||u.pathname===h.pathname)&&!u.search;}catch(e){return false;}}
+function defaults(){const d={dests:{},def:{},last:{llm:'chatgpt',dest:'',prompt:''},prompts:[],ack:false,confirmEach:false,prefill:true};
+ ORDER.forEach(k=>{const id=uid();d.dests[k]=[{id,name:LLMS[k].name+' (new chat)',url:LLMS[k].home}];d.def[k]=id;});return d;}
+function clean(s){const d=defaults();s=s&&typeof s==='object'?s:{};const out={dests:{},def:{},last:{},prompts:[],ack:!!s.ack,confirmEach:!!s.confirmEach,prefill:s.prefill!==false};
+ ORDER.forEach(k=>{const list=Array.isArray((s.dests||{})[k])?s.dests[k]:d.dests[k];
+  out.dests[k]=list.filter(x=>x&&validUrl(k,x.url)).slice(0,30).map(x=>({id:String(x.id||uid()).slice(0,20),name:String(x.name||'').slice(0,60)||LLMS[k].name,url:String(x.url).trim()}));
+  if(!out.dests[k].length)out.dests[k]=d.dests[k];const df=(s.def||{})[k];out.def[k]=out.dests[k].some(x=>x.id===df)?df:out.dests[k][0].id;});
+ out.prompts=(Array.isArray(s.prompts)?s.prompts:[]).filter(p=>p&&String(p.text||'').trim()).slice(0,30).map(p=>({id:String(p.id||uid()).slice(0,20),name:String(p.name||'Prompt').slice(0,60),text:String(p.text).slice(0,20000)}));
+ const l=s.last||{};out.last={llm:ORDER.includes(l.llm)?l.llm:'chatgpt',dest:String(l.dest||''),prompt:String(l.prompt||'')};return out;}
+function unpack(json){try{return clean(json?JSON.parse(json):null);}catch(e){return clean(null);}}
+function pack(s){return JSON.stringify(clean(s));}
+function payload(prefix,text){const p=String(prefix||'').trim(),t=String(text||'').trim();return p?p+'\n\n---\n\n'+t:t;}
+// Returns {url, prefilled, auto}. URL prefill only on the LLM's home page, only if supported, enabled and short enough.
+function buildUrl(llm,destUrl,text,opt){opt=opt||{};const L=LLMS[llm];if(!L)throw new Error('Unknown LLM');if(!validUrl(llm,destUrl))throw new Error('Destination is not a '+L.name+' address');
+ const t=String(text||'');if(opt.prefill!==false&&L.q&&isHome(llm,destUrl)&&t.length<=(opt.max||MAX_URL_TEXT))return {url:L.q+encodeURIComponent(t),prefilled:true,auto:L.auto};
+ return {url:String(destUrl).trim(),prefilled:false,auto:false};}
+// Second check: refuses (returns issues) if anything identifying is still in what would be copied. detect is DeID.detect.
+function guard(parts,opt){opt=opt||{};if(typeof opt.check!=='function')throw new Error('leak check missing: refusing to send');
+ return opt.check(parts,{detect:opt.detect,alwaysRemove:opt.alwaysRemove||[],patient:opt.patient||{}});}
+return {KEY,LLMS,ORDER,MAX_URL_TEXT,validUrl,isHome,defaults,clean,unpack,pack,payload,buildUrl,guard};})();
+if(typeof module!=='undefined')module.exports=DeIDExport;
 </script>
 <script>
 (function(){
@@ -1553,6 +1628,73 @@ $('qinstr').addEventListener('input',()=>{prefs.instr.queue=$('qinstr').value;pe
 $('qinstrreset').onclick=()=>{delete prefs.instr.queue;$('qinstr').value=qInstr();persistPrefs();};
 document.addEventListener('visibilitychange',()=>{if(QS.view!=='rev'||!$('qv').classList.contains('on'))return;if(document.visibilityState==='hidden'){qStopTimer();qSave();}else qStartTimer();});
 window.addEventListener('pagehide',()=>{qStopTimer();qSave();});
+// ---- Send to LLM UI (v1.6.0). Everything happens inside the user's tap: check -> copy -> open (iOS needs the gesture).
+const EX={s:DeIDExport.unpack((()=>{try{return localStorage.getItem(DeIDExport.KEY);}catch(e){return null;}})()),pending:null};
+const exSave=()=>{try{localStorage.setItem(DeIDExport.KEY,DeIDExport.pack(EX.s));}catch(e){}};
+const exL=()=>DeIDExport.LLMS[EX.s.last.llm];
+function exFill(){const s=EX.s,k=s.last.llm;$('llm').innerHTML='';DeIDExport.ORDER.forEach(x=>$('llm').appendChild(el('option',{value:x,text:DeIDExport.LLMS[x].name,selected:x===k?'selected':null})));
+ $('llmdest').innerHTML='';const ds=s.dests[k];let cur=ds.some(d=>d.id===s.last.dest)?s.last.dest:s.def[k];
+ ds.forEach(d=>$('llmdest').appendChild(el('option',{value:d.id,text:d.name+(d.id===s.def[k]?' ★':''),selected:d.id===cur?'selected':null})));s.last.dest=cur;
+ $('llmprompt').innerHTML='';$('llmprompt').appendChild(el('option',{value:'',text:'No saved instruction'}));
+ s.prompts.forEach(p=>$('llmprompt').appendChild(el('option',{value:p.id,text:'+ '+p.name,selected:p.id===s.last.prompt?'selected':null})));
+ if(!s.prompts.some(p=>p.id===s.last.prompt))s.last.prompt='';
+ document.querySelectorAll('.llmname').forEach(e=>e.textContent=exL().name);}
+$('llm').onchange=()=>{EX.s.last.llm=$('llm').value;EX.s.last.dest='';exFill();exSave();};
+$('llmdest').onchange=()=>{EX.s.last.dest=$('llmdest').value;exSave();};
+$('llmprompt').onchange=()=>{EX.s.last.prompt=$('llmprompt').value;exSave();};
+function exToast(t,bad){const e=$('llmtoast');e.textContent=t;e.className=bad?'bad on':'on';clearTimeout(EX.tt);EX.tt=setTimeout(()=>e.className='',bad?8000:6000);}
+function exMsg(box,html){const m=$(box);m.innerHTML='';if(html)m.appendChild(html);}
+function exCopySync(v){let ok=false;try{const t=document.createElement('textarea');t.value=v;t.setAttribute('readonly','');t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();t.setSelectionRange(0,v.length);ok=document.execCommand('copy');t.remove();}catch(e){}
+ try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(v).catch(()=>{});ok=true;}}catch(e){}return ok;}
+// where: label for messages; getText: returns the de-identified text; box: id of the status element
+function exSend(where,getText,box){const s=EX.s,k=s.last.llm,L=DeIDExport.LLMS[k];const dest=(s.dests[k].find(d=>d.id===s.last.dest)||s.dests[k][0]);
+ const text=String(getText()||'').trim();if(!text){exMsg(box,el('div',{cls:'llmbad',text:'Nothing to send: the de-identified text is empty.'}));return;}
+ const pr=s.prompts.find(p=>p.id===s.last.prompt),once=box==='llmmsg'?$('llmonce').value.trim():'';const prefix=[pr?pr.text:'',once].filter(Boolean).join('\n\n');
+ let issues;try{issues=DeIDExport.guard([{where:where,text:text},{where:'One-time instruction',text:once}],{check:DeIDTx.checkOutgoing,detect:DeID.detect,alwaysRemove:alwaysList(),patient:patientNow()});}
+ catch(e){exMsg(box,el('div',{cls:'llmbad',text:'NOT SENT: '+e.message}));exToast('NOT SENT',true);return;}
+ if(issues.length){exMsg(box,el('div',{cls:'llmbad'},[el('b',{text:'NOT SENT. Identifiers are still in the text:'}),el('pre',{text:DeIDTx.formatIssues(issues)}),'Remove them from the de-identified text (or add the name to "Always remove"), then try again. Nothing was copied or opened.']));exToast('NOT SENT: identifiers found',true);return;}
+ if(!s.ack||s.confirmEach){EX.pending={where,getText,box};$('llmackprov').textContent=L.name;$('llmack').classList.add('on');return;}
+ const full=DeIDExport.payload(prefix,text);const r=DeIDExport.buildUrl(k,dest.url,full,{prefill:s.prefill});
+ const copied=exCopySync(full);const w=window.open(r.url,'_blank');try{if(w)w.opener=null;}catch(e){}
+ const tip=r.prefilled?(r.auto?'Copied. '+L.name+' was opened with the text and should start answering.':'Copied. '+L.name+' opened with the text filled in: tap Send.'):'Copied — paste (hold → Paste) and send.';
+ exMsg(box,el('div',{cls:'llmok'},[tip+' Destination: '+dest.name+'. ',w===null?el('a',{href:r.url,target:'_blank',rel:'noopener',text:'Popup blocked: tap here to open '+L.name}):null,copied?null:' (Copy failed: select the text and copy it yourself.)']));
+ exToast(r.prefilled?'Copied — '+L.name+' opened':'Copied — paste (hold → Paste) and send');s.last.dest=dest.id;exSave();}
+$('llmsend').onclick=()=>exSend('De-identified output',()=>$('out').value,'llmmsg');
+$('qllmprev').onclick=()=>exSend('Queue: de-identified dictation/report',()=>{const d=qDeid($('qdict').value),r=qDeid($('qreport').value);return [d?'Dictation (de-identified):\n'+d:'',r?'Outside report (de-identified):\n'+r:''].filter(Boolean).join('\n\n');},'qllmmsg1');
+$('qllmnote').onclick=()=>exSend('Queue: draft note',()=>$('qnote').value,'qllmmsg2');
+$('llmackok').onclick=()=>{EX.s.ack=true;exSave();$('llmack').classList.remove('on');const p=EX.pending;EX.pending=null;if(p){const c=EX.s.confirmEach;EX.s.confirmEach=false;try{exSend(p.where,p.getText,p.box);}finally{EX.s.confirmEach=c;exSave();}}};
+$('llmackno').onclick=()=>{EX.pending=null;$('llmack').classList.remove('on');exToast('Not sent');};
+// ---- destinations & saved instructions editor ----
+function exRenderSet(){const s=EX.s,box=$('llmdests');box.innerHTML='';
+ DeIDExport.ORDER.forEach(k=>{const L=DeIDExport.LLMS[k];const fs=el('fieldset',null,[el('legend',{text:L.name})]);
+  s.dests[k].forEach(d=>{fs.appendChild(el('div',{cls:'llmrow'},[el('label',null,[el('input',{type:'radio',name:'def-'+k,checked:d.id===s.def[k]?'checked':null,title:'Default',onchange:()=>{s.def[k]=d.id;exSave();exFill();}}),' default']),
+   el('span',{cls:'llmdn',text:d.name}),el('span',{cls:'llmdu',text:d.url}),
+   el('button',{type:'button',text:'Edit',onclick:()=>exEdit(k,d)}),s.dests[k].length>1?el('button',{type:'button',text:'Delete',onclick:()=>{if(!confirm('Delete "'+d.name+'"?'))return;s.dests[k]=s.dests[k].filter(x=>x!==d);EX.s=DeIDExport.clean(s);exSave();exFill();exRenderSet();}}):null]));});
+  fs.appendChild(el('button',{type:'button',cls:'ok',text:'+ Add '+L.name+' project/'+(k==='gemini'?'gem':k==='perplexity'?'space':'project'),onclick:()=>exEdit(k,null)}));
+  fs.appendChild(el('div',{cls:'small',text:'Example address: '+L.example+'. Open the project in '+L.name+', copy the address from the address bar (Share → Copy on iPhone) and paste it here.'}));box.appendChild(fs);});
+ const pb=$('llmprompts');pb.innerHTML='';s.prompts.forEach(p=>pb.appendChild(el('div',{cls:'llmrow'},[el('span',{cls:'llmdn',text:p.name}),el('span',{cls:'llmdu',text:p.text.slice(0,80)+(p.text.length>80?'…':'')}),
+  el('button',{type:'button',text:'Edit',onclick:()=>exEditPrompt(p)}),el('button',{type:'button',text:'Delete',onclick:()=>{if(!confirm('Delete "'+p.name+'"?'))return;s.prompts=s.prompts.filter(x=>x!==p);exSave();exFill();exRenderSet();}})])));
+ $('llmprefill').checked=s.prefill;$('llmconfirm').checked=s.confirmEach;}
+function exEdit(k,d){const L=DeIDExport.LLMS[k];const name=prompt(L.name+' destination name (e.g. "Vascular notes project"). No patient information.',d?d.name:'');if(name==null)return;
+ const url=prompt('Paste the '+L.name+' address (starts with https://'+L.hosts[0]+'/):',d?d.url:L.example.replace(/X+/g,''));if(url==null)return;
+ if(!DeIDExport.validUrl(k,url)){alert('That is not a '+L.name+' address (must start with https://'+L.hosts.join(' or https://')+').');return;}
+ if(d){d.name=name.trim()||d.name;d.url=url.trim();}else{const id=Math.random().toString(36).slice(2,10);EX.s.dests[k].push({id,name:name.trim()||L.name,url:url.trim()});}
+ EX.s=DeIDExport.clean(EX.s);exSave();exFill();exRenderSet();}
+function exEditPrompt(p){const name=prompt('Instruction name (e.g. "Appendix A note"):',p?p.name:'');if(name==null)return;
+ $('llmpname').value=name;$('llmptext').value=p?p.text:'';$('llmpedit').dataset.id=p?p.id:'';$('llmpedit').classList.remove('hide');$('llmptext').focus();}
+$('llmpsave').onclick=()=>{const t=$('llmptext').value.trim();if(!t){alert('Instruction text is empty.');return;}const id=$('llmpedit').dataset.id;
+ const hit=DeID.detect(t,{alwaysRemove:alwaysList(),patientName:''});if(hit.length&&!confirm('This instruction looks like it contains identifiers ('+hit.map(h=>h.category+': '+h.value).slice(0,3).join(', ')+'). Saved instructions must not contain patient information. Save anyway?'))return;
+ const p=EX.s.prompts.find(x=>x.id===id);if(p){p.name=$('llmpname').value.trim()||p.name;p.text=t;}else EX.s.prompts.push({id:Math.random().toString(36).slice(2,10),name:$('llmpname').value.trim()||'Instruction',text:t});
+ EX.s=DeIDExport.clean(EX.s);$('llmpedit').classList.add('hide');exSave();exFill();exRenderSet();};
+$('llmpcancel').onclick=()=>$('llmpedit').classList.add('hide');
+$('llmaddprompt').onclick=()=>exEditPrompt(null);
+$('llmaddappa').onclick=()=>{$('llmpname').value='Appendix A note';$('llmptext').value=qInstr();$('llmpedit').dataset.id='';$('llmpedit').classList.remove('hide');};
+$('llmprefill').onchange=()=>{EX.s.prefill=$('llmprefill').checked;exSave();};
+$('llmconfirm').onchange=()=>{EX.s.confirmEach=$('llmconfirm').checked;exSave();};
+$('llmresetack').onclick=()=>{EX.s.ack=false;exSave();exToast('The safety notice will show again before the next send');};
+$('llmcfg').onclick=()=>{exRenderSet();$('llmset').classList.add('on');};
+$('llmsetclose').onclick=()=>$('llmset').classList.remove('on');
+exFill();
 qRestore();
 if(!remember)try{localStorage.removeItem(LS);}catch(e){}
 if(!rememberInstr)try{localStorage.removeItem(PLS);}catch(e){}
