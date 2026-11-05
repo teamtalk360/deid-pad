@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="DeID Pad">
 <meta name="theme-color" content="#14324f"><link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-180.png">
-<meta name="referrer" content="no-referrer"><meta name="deidpad-version" content="1.7.0-deid"><title>DeID Pad</title>
+<meta name="referrer" content="no-referrer"><meta name="deidpad-version" content="1.8.0-fidelity"><title>DeID Pad</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font:14px system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f6f8;color:#1b2430;height:100vh;display:flex;flex-direction:column}
 header{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#14324f;color:#fff;flex-wrap:wrap}
@@ -49,6 +49,20 @@ textarea{flex:1;width:100%;resize:none;font:13px/1.45 ui-monospace,Menlo,Consola
 .qbadge{background:#7a4b00;color:#fff;border-radius:4px;padding:3px 8px;font-size:12px;font-weight:700}.qsw{font-size:13px}#qmsg{font-size:13px;color:#0b6b3a;font-weight:600}
 .qban{background:#fff7e0;border:1px solid #e3c66b;border-radius:6px;padding:8px 10px;margin:6px 0;font-size:13px}.qinfo{background:#eaf2fb;border:1px solid #b9d0ea;border-radius:6px;padding:8px 10px;margin:6px 0;font-size:13px}
 .qerr{background:#fdecec;border:1px solid #e3a3a3;border-radius:6px;padding:8px 10px;margin:6px 0;font-size:13px;white-space:pre-wrap}.qlow{background:#fff1e0;border:1px solid #f0b46a;border-radius:6px;padding:8px 10px;margin:6px 0;font-size:13px;font-weight:600;color:#7a3e00}
+
+.qfid{background:#fff8f0;border:1px solid #e7c9a0;border-radius:8px;padding:8px 10px;margin:8px 0}
+.qfid.pass{background:#f0faf3;border-color:#9dceb0}
+.qfid h4{margin:0 0 6px;font-size:14px;color:#7a3d00}.qfid.pass h4{color:#0b6b3a}
+.qfid .qfidsum{font-size:13px;white-space:pre-wrap;margin:0 0 8px}
+.qfiditem{background:#fff;border:1px solid #e7d3b0;border-radius:6px;padding:6px 8px;margin:4px 0;font-size:13px}
+.qfiditem.kept{opacity:.55;background:#f4f6f8}
+.qfiditem .qfidn{display:inline-block;min-width:1.6em;font-weight:800;color:#8a3d00}
+.qfiditem .qfidspan{background:#ffe9bf;padding:0 3px;border-radius:3px}
+.qfidbtns{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.qfid mark,.hlfid{background:#ffe08a;padding:0 2px;border-radius:2px}
+#qattestbox textarea{width:100%;min-height:70px;font:13px/1.4 system-ui,sans-serif}
+#qbanned{width:100%;min-height:90px;font:12px/1.35 ui-monospace,Menlo,monospace}
+
 .qnd{background:#f3f0ff;border:1px solid #c9bdf0;border-radius:6px;padding:6px 10px;margin:6px 0;font-size:13px}.qwarn{color:#a02020;font-size:12px;font-weight:600}
 .qstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:8px 0}.qstat{background:#fff;border:1px solid #d5dde6;border-radius:8px;padding:8px 10px}.qk{font-size:12px;color:#5a6b7d}.qv{font-size:22px;font-weight:700;color:#14324f}
 .qbar{height:6px;background:#e3e9ef;border-radius:3px;margin-top:4px}.qbar i{display:block;height:100%;background:#2e8b57;border-radius:3px}
@@ -102,7 +116,7 @@ header{padding-top:max(8px,env(safe-area-inset-top))}
 #gatelist{list-style:none;padding:0;margin:8px 0}#gatelist li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #eee;font-size:14px}#gatelist li small{color:#666}
 #gatebox .gbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}#gatebox .gbtns button{min-height:44px;flex:1 1 40%}
 </style></head><body>
-<header><h1>DeID Pad <small id="ver" style="font-size:11px;font-weight:400;opacity:.8">v1.7.0</small></h1>
+<header><h1>DeID Pad <small id="ver" style="font-size:11px;font-weight:400;opacity:.8">v1.8.0</small></h1>
 <button type="button" class="rec" id="rec" title="Start ambient dictation">&#9679; Record</button><button type="button" id="stop" disabled>&#9632; Stop</button><span id="micstat"></span>
 <button type="button" id="scan" title="Scan a paper report with the camera: text is read on this device, nothing is uploaded">&#128247; Scan with camera</button>
 <span id="recind"><i></i>REC <span id="elapsed">00:00</span></span><span id="txstat"></span><button type="button" id="retry" class="hide">Retry failed</button>
@@ -179,7 +193,7 @@ Sunnybrook Manor"></textarea>
  <button type="button" id="qadd" class="p">+ Add patient</button><button type="button" id="qdraftall">Draft all waiting</button>
  <label class="qsw"><input type="checkbox" id="qdemomode"> Demo mode (fake patients, no API key)</label><button type="button" id="qloaddemo" class="hide">Load 5 fake patients</button>
  <button type="button" id="qset">&#9881; Queue settings</button><button type="button" id="qclose">Close</button><span id="qmsg" role="status"></span></div>
-<div class="qban">AI drafts only. Nothing goes into a chart until you open it, answer its questions, confirm its wording, approve it and paste it yourself. There is no "approve all" button, by design. Saved on this device until you finish each patient or tap Clear all.</div>
+<div class="qban">AI drafts only. A fidelity check flags unsupported wording before Copy. Nothing goes into a chart until you open it, clear or confirm every flag, approve it and paste it yourself. There is no "approve all" button, by design. Saved on this device until you finish each patient or tap Clear all.</div>
 <div id="qkeynote" class="qinfo hide">No OpenAI key yet: add one in Queue settings, or tick Demo mode to try the flow with fake patients.</div>
 <div id="qlist"><div id="qstats" class="qstats"></div><div id="qchips" class="qchips"></div>
  <table class="qtab"><thead><tr><th>Case</th><th>Setting</th><th>Visit</th><th>Suggested level</th><th>To check</th><th>Status</th><th></th></tr></thead><tbody id="qtbody"></tbody></table>
@@ -199,6 +213,18 @@ Sunnybrook Manor"></textarea>
  <div class="qrevtop"><button type="button" id="qrevback">&larr; Queue</button><b id="qrevtitle"></b><span id="qtimer" class="qtimer"></span><button type="button" id="qeditinputs">Edit dictation</button><button type="button" id="qredraft">Redraft</button></div>
  <div class="qrevcols"><div class="qleft"><div id="qrevwarn"></div>
    <label class="small" for="qnote">Draft note (edit freely; this is what gets copied)</label><textarea id="qnote" spellcheck="true"></textarea><div><button type="button" id="qllmnote" class="qllm">Send draft to <span class="llmname">ChatGPT</span> &#9656;</button><div id="qllmmsg2" role="status"></div></div><div id="qnd"></div>
+   <section id="qfid" class="qfid" aria-label="Fidelity check">
+    <h4>Fidelity check (vs your source)</h4>
+    <div class="small">Catches wording the AI may have invented. It cannot guarantee clinical accuracy. Never auto-rewrites — you remove or confirm each item.</div>
+    <div id="qfidsum" class="qfidsum"></div>
+    <div id="qfidlist"></div>
+    <div class="qfidbtns">
+     <button type="button" id="qfidrun">Re-check now</button>
+     <button type="button" id="qattins">Insert my attestation (unchanged)</button>
+     <label class="small">Time for attestation <input id="qfidtime" type="text" size="12" placeholder="e.g. 25 minutes" autocomplete="off"></label>
+    </div>
+    <div class="small" id="qfidblock"></div>
+   </section>
    <details><summary>Codes, staff orders, patient instructions, referring letter (from the draft)</summary><div class="qh">Codes (coder to confirm)</div><pre id="qcodes" class="qpre"></pre><div class="qh">Staff orders</div><pre id="qorders" class="qpre"></pre><div class="qh">Patient instructions</div><pre id="qinstrout" class="qpre"></pre><div class="qh">Letter to referring doctor</div><pre id="qletter" class="qpre"></pre></details>
    <details><summary>What was sent to the AI</summary><pre id="qsent" class="qpre"></pre></details></div>
   <div class="qright">
@@ -208,7 +234,7 @@ Sunnybrook Manor"></textarea>
    <section class="qbox"><h4>4. Approve, then paste</h4><div>Level you will bill: <select id="qfinal"></select></div><div id="qapprovewhy" class="small"></div>
     <button type="button" id="qapprove" class="ok">Approve note</button><button type="button" id="qunapprove" class="hide">Edit again</button>
     <div id="qpaste" class="hide"><button type="button" id="qcopyfinish" class="p">Copy note &amp; finish</button><button type="button" id="qfinish">Finish &amp; wipe this patient</button>
-     <div class="small">Or copy one section at a time:</div><div class="qchips"><button type="button" data-qcopy="hpi">Copy HPI</button><button type="button" data-qcopy="exam">Copy Exam</button><button type="button" data-qcopy="ap">Copy A/P + MDM</button><button type="button" data-qcopy="codes">Copy Codes</button><button type="button" data-qcopy="letter">Copy Letter</button><button type="button" data-qcopy="instructions">Copy Patient instructions</button><button type="button" data-qcopy="orders">Copy Orders</button></div></div>
+     <div class="small">Or copy one section at a time:</div><div class="qchips"><button type="button" data-qcopy="hpi">Copy HPI</button><button type="button" data-qcopy="exam">Copy Exam</button><button type="button" data-qcopy="ap">Copy Assessment / Plan</button><button type="button" data-qcopy="codes">Copy Codes</button><button type="button" data-qcopy="letter">Copy Letter</button><button type="button" data-qcopy="instructions">Copy Patient instructions</button><button type="button" data-qcopy="orders">Copy Orders</button></div></div>
     <button type="button" id="qnextp">Next patient</button></section>
   </div></div></div>
 </div></div>
@@ -275,8 +301,18 @@ Sunnybrook Manor"></textarea>
  <div class="row"><span>Reasoning effort</span><select data-k="queue.effort"><option value="">Model default</option><option value="low">Low (faster)</option><option value="medium">Medium</option><option value="high">High</option></select></div>
  <div class="row"><span>After copy</span><label><input type="checkbox" data-k="queue.wipeOnCopy"> Wipe a patient's text as soon as I copy the finished note</label></div>
  <div class="row"><span>Drafting</span><label><input type="checkbox" data-k="queue.autoDraft"> Start the AI draft as soon as I save a patient</label></div>
- <div class="row"><span>Drafting instructions (Appendix A)</span><textarea id="qinstr" spellcheck="false" style="min-height:180px"></textarea></div>
- <div class="row"><span></span><span><button type="button" id="qinstrreset">Reset to Appendix A</button> <span class="small">Edits are saved on this device only if "Remember project instructions and references on this device" is ticked above.</span></span></div>
+ <div class="row"><span>Drafting instructions (default: hardened SOAP)</span><textarea id="qinstr" spellcheck="false" style="min-height:180px"></textarea></div>
+ <div class="row"><span></span><span>
+  <button type="button" id="qinstrreset">Reset to hardened prompt</button>
+  <button type="button" id="qinstrlegacy">Load old Appendix A</button>
+  <span class="small">Edits are saved on this device only if "Remember project instructions and references on this device" is ticked above. Hardened prompt = copy only facts, omit empty sections, never write "not documented".</span>
+ </span></div>
+ <div class="row" id="qattestbox"><span>Verbatim attestation<br><small>Saved on this device. Inserted by CODE into the note — never sent through the LLM. Use {{TIME}} where the typed time should go.</small></span>
+  <textarea id="qattest" spellcheck="false" placeholder="Your attestation text with {{TIME}}"></textarea></div>
+ <div class="row"><span></span><span><button type="button" id="qattestreset">Reset attestation text</button> <span class="small">Leave blank to skip auto-insert.</span></span></div>
+ <div class="row"><span>Fidelity: banned phrases<br><small>One per line. Flagged when present in a note but not in your source.</small></span>
+  <textarea id="qbanned" spellcheck="false"></textarea></div>
+ <div class="row"><span></span><span><button type="button" id="qbannedreset">Reset banned list</button></span></div>
 </fieldset>
 <fieldset><legend>Device</legend>
  <label><input type="checkbox" id="remember"> Remember settings (including API keys and PIN) on this device</label>
@@ -1146,13 +1182,17 @@ var DeIDTx=(function(){
 const AZ_HOST=/^https:\/\/[a-z0-9][a-z0-9\-]*\.openai\.azure\.com$/i;
 const OPENAI='https://api.openai.com/v1';
 const DEFAULT_VOCAB='Vascular surgery clinic dictation. Claudication, rest pain, ABI, TBI, PVR, duplex, CTA, SFA, popliteal, tibial, peroneal, AAA, EVAR, TEVAR, carotid endarterectomy, stenosis, occlusion, angioplasty, atherectomy, stent, femoral-popliteal bypass, cilostazol, clopidogrel, apixaban, rivaroxaban, atorvastatin.';
-const SOAP_SYSTEM='You are a clinical documentation assistant for a vascular surgeon. Rewrite the de-identified dictation/notes you are given into a concise SOAP note with the headings Subjective, Objective, Assessment, Plan. Rules: use only facts present in the input; never invent findings, doses or dates; keep placeholder tokens such as [NAME], [DATE], [ID], [ADDRESS] exactly as written and never try to fill them in; do not add any identifiers; write "not documented" for a missing section; use standard vascular abbreviations; plain text only, no markdown tables.';
-const NOTE_INSTRUCTIONS=['You are a medical documentation assistant. Generate a complete SOAP note from the input provided. Output only the note, with no explanations, prefaces, follow-up questions, or qualifying statements.',
+const SOAP_SYSTEM_LEGACY='You are a clinical documentation assistant for a vascular surgeon. Rewrite the de-identified dictation/notes you are given into a concise SOAP note with the headings Subjective, Objective, Assessment, Plan. Rules: use only facts present in the input; never invent findings, doses or dates; keep placeholder tokens such as [NAME], [DATE], [ID], [ADDRESS] exactly as written and never try to fill them in; do not add any identifiers; write "not documented" for a missing section; use standard vascular abbreviations; plain text only, no markdown tables.';
+const SOAP_SYSTEM=(typeof DeIDFidelity!=='undefined'&&DeIDFidelity.HARDENED_PROMPT)||'You are a strict clinical transcription assistant. Copy only facts from the input into Subjective, Objective, Assessment, Plan as SEPARATE sections. Omit any section with no input — never write that it is missing, not documented, or not supplied. No interpretations, billing, CPT, MDM, or attestation. Keep tokens like [NAME] unchanged. Plain text only.';
+const NOTE_INSTRUCTIONS_LEGACY=['You are a medical documentation assistant. Generate a complete SOAP note from the input provided. Output only the note, with no explanations, prefaces, follow-up questions, or qualifying statements.',
 '','Begin with this header:','Established patient','* [vascular condition 1]','* [vascular condition 2]','* [vascular condition 3]','* etc.',
 '','Then the SOAP note, formatted exactly:','','**S:**','[Subjective content] expressed as multiple small paragraphs for easy readability.',
 '','**O:**','[Objective content] Express each system as a separate small paragraph, with triple spacing for readability.',
 '','**A:**','[Assessment content]','','**P:**','[Plan content]',
 '','Paragraphs are separated by triple spacing (two blank lines). In Assessment and Plan, separate statements with double spacing (one blank line). End after the Plan section. Do not include any other content. Identifiers in the input appear as tokens like [NAME], [DATE], [ID]; keep them as tokens and never invent identifiers.'].join('\n');
+const NOTE_INSTRUCTIONS=(typeof DeIDFidelity!=='undefined'&&DeIDFidelity.HARDENED_PROMPT)||['You are a strict clinical transcription assistant. Output only a SOAP note.',
+'','Rules: copy only facts from input; every sentence must be traceable; OMIT any section with no input (never write missing/not documented/not supplied); no interpretations or control/severity adjectives unless his words; no billing/CPT/MDM/time unless given; no attestation (inserted by app code); no Clinical problems list; keep his terms; ask NO questions inside the note — list open questions separately after the note under OPEN QUESTIONS.',
+'','Fixed template (omit a heading if empty):','Subjective:','[facts]','','Objective:','[facts]','','Assessment:','[facts — separate from Plan]','','Plan:','[facts — separate from Assessment]'].join('\n');
 // Always appended, even when the user edits the project instructions.
 const NOTE_GUARD='\n\nPrivacy rule (always applies): the input is de-identified. Keep placeholder tokens such as [NAME], [DATE], [ID], [PHONE], [ADDRESS] exactly as written. Never guess, fill in or invent names, dates of birth, record numbers, phone numbers or addresses. Use only facts present in the input.';
 const EM_INSTRUCTIONS=['You are a medical documentation assistant for a vascular surgeon. Write a vascular follow-up or new-patient (E/M) clinic note from the de-identified input. The input may contain: a prior note (redacted), a template with medications and vitals, test/imaging reports, and a brief statement of new symptoms or exam changes. Output only the note: no explanations, prefaces, questions or qualifying statements.',
@@ -1167,7 +1207,7 @@ const EM_INSTRUCTIONS=['You are a medical documentation assistant for a vascular
 '7. Patient Education: lifestyle, warning signs, and when to call or return.',
 '8. Medical Decision Making: one paragraph describing the activities performed for this visit (face-to-face evaluation, pre-charting, charting, review of outside records/diagnostics) WITHOUT any times or minutes, limited to activities supported by the input and the confirmed attestations below.',
 '9. End with the line "Dictation addendum:" followed by nothing.'].join('\n');
-const TEMPLATES={soap:{label:'SOAP (Established patient)',instructions:NOTE_INSTRUCTIONS,plain:false},
+const TEMPLATES={soap:{label:'SOAP (Established patient)',instructions:NOTE_INSTRUCTIONS,plain:true},
  em:{label:'Vascular Follow-up / New Patient (E/M)',instructions:EM_INSTRUCTIONS,plain:true}};
 const ATTEST={externalRecords:{label:'I reviewed external records',text:'External records were personally reviewed by the physician.'},
  imaging:{label:'I independently interpreted imaging',text:'Imaging was independently interpreted by the physician.'},
@@ -1474,7 +1514,7 @@ function unpackDraft(str,opt){opt=opt||{};if(!str)return null;let j;try{j=JSON.p
 function clearDraft(store){if(!store)return 0;let n=0;try{const ks=[];for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&/^deidpad\.draft\.|^deidpad\.draft$/.test(k))ks.push(k);}
  ks.forEach(k=>{store.removeItem(k);n++;});}catch(e){}return n;}
 function draftAutoClearHours(store){try{const j=JSON.parse(store.getItem(DRAFT_PREFS_KEY)||'{}');const h=+j.autoClearHours;return h>0&&h<=720?h:0;}catch(e){return 0;}}
-return {DRAFT_KEY,DRAFT_PREFS_KEY,DRAFT_TEXT,DRAFT_BOOL,draftPick,packDraft,unpackDraft,clearDraft,draftAutoClearHours,scanFit,grayContrast,ocrWords,wordsText,wordRange,lineOf,SCAN_SEP,scanInsert,scanScore,meanConf,isScanImage,EM_INSTRUCTIONS,TEMPLATES,ATTEST,complianceBlock,validDocId,buildNoteFilename,fillDocId,buildNoteBody,scrubResponse,toPlain,complianceCheck,generateGuardedNote,NOTE_INSTRUCTIONS,NOTE_GUARD,splitRefs,checkOutgoing,formatIssues,noteSystem,buildNoteRequest,parseNoteResponse,cleanNote,generateNote,isHelperHost,buildHelperSave,buildNoteFile,MIME,splitName,buildFilename,isoDate,graphScopes,buildGraphUpload,uploadToGraph,buildExportBody,makeDocx,crc32,containsPatient,DEFAULT_VOCAB,SOAP_SYSTEM,mimeExt,pickMime,validate,buildTranscriptionRequest,parseTranscription,transcribe,isNoise,buildChatRequest,formatSoap,isPrivateHost,buildShareRequest,encodeWav};
+return {DRAFT_KEY,DRAFT_PREFS_KEY,DRAFT_TEXT,DRAFT_BOOL,draftPick,packDraft,unpackDraft,clearDraft,draftAutoClearHours,scanFit,grayContrast,ocrWords,wordsText,wordRange,lineOf,SCAN_SEP,scanInsert,scanScore,meanConf,isScanImage,EM_INSTRUCTIONS,TEMPLATES,ATTEST,complianceBlock,validDocId,buildNoteFilename,fillDocId,buildNoteBody,scrubResponse,toPlain,complianceCheck,generateGuardedNote,NOTE_INSTRUCTIONS,NOTE_GUARD,splitRefs,checkOutgoing,formatIssues,noteSystem,buildNoteRequest,parseNoteResponse,cleanNote,generateNote,isHelperHost,buildHelperSave,buildNoteFile,MIME,splitName,buildFilename,isoDate,graphScopes,buildGraphUpload,uploadToGraph,buildExportBody,makeDocx,crc32,containsPatient,DEFAULT_VOCAB,SOAP_SYSTEM,SOAP_SYSTEM_LEGACY,NOTE_INSTRUCTIONS_LEGACY,mimeExt,pickMime,validate,buildTranscriptionRequest,parseTranscription,transcribe,isNoise,buildChatRequest,formatSoap,isPrivateHost,buildShareRequest,encodeWav};
 })();
 if(typeof module!=='undefined')module.exports=DeIDTx;
 /*TX-END*/
@@ -1494,7 +1534,7 @@ if(typeof module!=='undefined')module.exports=DeIDTx;
 <div class="small">Saved on this device. They hold no patient information: only names, web addresses and your instruction text.</div>
 <div id="llmdests"></div>
 <fieldset><legend>Saved instructions (added before the de-identified text)</legend><div id="llmprompts"></div>
-<button type="button" id="llmaddprompt" class="ok">+ Add instruction</button> <button type="button" id="llmaddappa">+ Add my Appendix A instruction</button>
+<button type="button" id="llmaddprompt" class="ok">+ Add instruction</button> <button type="button" id="llmaddhard">+ Add hardened SOAP instruction</button> <button type="button" id="llmaddappa">+ Add old Appendix A</button>
 <div id="llmpedit" class="hide"><label class="small">Name <input id="llmpname" type="text" size="30"></label><textarea id="llmptext" spellcheck="false"></textarea><button type="button" id="llmpsave" class="p">Save instruction</button> <button type="button" id="llmpcancel">Cancel</button></div></fieldset>
 <fieldset><legend>Options</legend>
 <label><input type="checkbox" id="llmprefill"> When sending to a plain new chat (not a project) and the text is short (≤1500 characters), also put it in the web address so ChatGPT fills it in / Grok and Perplexity start answering. Projects, gems and spaces always use copy &amp; paste.</label><br>
@@ -1503,6 +1543,454 @@ if(typeof module!=='undefined')module.exports=DeIDTx;
 <div id="gate" role="dialog" aria-modal="true" aria-labelledby="gatetitle"><div id="gatebox"><h3 id="gatetitle">Stopped: possible identifiers</h3><div id="gatewhat" class="small"></div>
 <ul id="gatelist"></ul><div class="small">Nothing was copied, sent or saved. Redact them (recommended), or mark one as "not an identifier" if it is a normal word.</div>
 <div class="gbtns"><button type="button" class="p" id="gateredact">Redact all and continue</button><button type="button" id="gatecancel">Cancel</button></div></div></div>
+<script>
+/*FIDELITY-START*/
+// Deterministic note fidelity check (v1.8.0). Compares a draft note to the source
+// de-identified dictation/records. Never calls an LLM. Never auto-rewrites.
+// FAKE-safe: all logic is text comparison only.
+var DeIDFidelity=(function(){
+'use strict';
+
+const SOAP_SECTIONS=['Subjective','Objective','Assessment','Plan'];
+const SOAP_ALIASES={
+ Subjective:['Subjective','S','HPI','History of present illness','Chief complaint','CC'],
+ Objective:['Objective','O','Exam','Physical exam','Vitals','Data reviewed'],
+ Assessment:['Assessment','A','Impression','Diagnoses'],
+ Plan:['Plan','P','Recommendations','Plan and recommendations']
+};
+const MERGED_AP=/^\s*(?:Assessment\s*(?:and|&|\/)\s*Plan|A\s*\/\s*P|A\s*&\s*P)\b/im;
+const EXTRA_HEADS=/^\s*(?:Clinical problems|Medication burden|MDM(?:\s+summary)?|Medical decision making|Medical necessity|CPT|E\/M|Complexity)\s*:/im;
+
+// Default banned phrases (editable in settings). Flagged only when NOT present in source.
+const DEFAULT_BANNED=[
+ 'not documented','not supplied','not provided','no additional','not done','not completed',
+ 'not performed','not addressed','none supplied','as supplied','as recorded',
+ 'appreciates the opportunity','was discussed','risks and benefits discussed','risk(s) and benefits discussed',
+ 'risks & benefits discussed','medical necessity','high complexity','moderate complexity',
+ 'high level of medical decision making','moderate level of medical decision making',
+ 'mdm','cpt','em level','e/m level','99202','99203','99204','99205','99212','99213','99214','99215',
+ 'no additional treatment plan supplied','none documented','nothing documented',
+ 'clinical problems','medication burden'
+];
+
+// Interpretive / control / severity words: flag when present in note but not in source.
+const DEFAULT_INTERPRETIVE=[
+ 'stable','controlled','uncontrolled','well-controlled','well controlled','poorly controlled',
+ 'improving','worsening','concerning','consistent with','suggestive of','likely','appears',
+ 'compatible with','at goal','not at goal','progressive','progressing','exacerbation',
+ 'deteriorating','reassuring'
+];
+
+const FILLER_RE=/\b(?:not documented|not supplied|not provided|no additional(?:\s+\w+){0,4}\s+supplied|none supplied|as supplied|as recorded)\b/i;
+
+const TIME_PLACEHOLDER='{{TIME}}';
+const DEFAULT_ATTESTATION='I personally performed the services described, reviewed and edited this note, and attest that it is accurate and complete. Time spent on the date of the encounter: {{TIME}}. — D. Bhaskar Rao, MD';
+
+const HARDENED_PROMPT=`ROLE
+You are a strict clinical transcription assistant for a vascular surgeon. Your only job is to rearrange facts the physician already supplied into a SOAP note. You never invent, infer, soften, or complete anything.
+
+HARD RULES (override everything else)
+1. Copy only facts present in the input. Every sentence in the note must be traceable to the input (dictation and/or de-identified records).
+2. OMIT any section or element with no input. Never write that something is missing, not done, not documented, not supplied, not provided, not performed, not completed, not addressed, or "no additional … supplied". Silence is correct; filler is forbidden.
+3. Never add interpretations or adjectives of control/severity (stable, controlled, uncontrolled, well-controlled, improving, worsening, concerning, consistent with, suggestive of, likely, appears, compatible with, at goal, progressive) unless those exact words (or clear synonyms he used) appear in the input.
+4. No billing, CPT, E/M level, MDM, medical necessity, complexity language, or time statements unless he explicitly dictated them. Attestation text is inserted by the app's code, not by you — do not write or rewrite an Attestation section.
+5. Do not create a "Clinical problems" list, "Medication burden" list, or any extra heading he did not supply.
+6. Keep his terms, abbreviations, doses, numbers, body sites, and phrasing. Do not synonym-swap clinical words.
+7. Ask NO questions inside the note. If something is unclear, put it under OPEN QUESTIONS after the note (outside the note body), as a short numbered list. Never put questions inside Subjective, Objective, Assessment, or Plan.
+8. Keep placeholder tokens such as [NAME], [DATE], [ID], [PHONE], [ADDRESS], [PCP-1] exactly as written. Never fill them in.
+9. Plain text only. No markdown tables. Assessment and Plan are ALWAYS separate sections — never merge them into "Assessment and Plan" or "A/P".
+
+FIXED OUTPUT TEMPLATE (use these headings exactly; omit a heading entirely if the input has nothing for it)
+
+Subjective:
+<only what he said about history/symptoms>
+
+Objective:
+<only exam / vitals / data he supplied>
+
+Assessment:
+<only diagnoses / impressions he stated — separate from Plan>
+
+Plan:
+<only plans / orders / follow-up he stated — separate from Assessment>
+
+OPEN QUESTIONS:
+1. <only if needed; otherwise omit this whole block>
+
+Do not add any other sections. Do not end with an attestation.`;
+
+const HARDENED_FORMAT_RULE='\n\nLayout for this app: start each note section on its own line as "Heading: text" using exactly these headings when content exists: Subjective, Objective, Assessment, Plan. Never merge Assessment and Plan. Never write "Not documented", "not supplied", or similar filler. Do not write an Attestation section (the app inserts the physician\'s saved verbatim attestation by code). After the note, if needed, put OPEN QUESTIONS: as a numbered list outside the note.';
+
+const SOAP_TEMPLATE_DISPLAY=`Subjective:
+[only facts from input — omit this heading if none]
+
+Objective:
+[only facts from input — omit this heading if none]
+
+Assessment:
+[only facts from input — separate from Plan — omit if none]
+
+Plan:
+[only facts from input — separate from Assessment — omit if none]`;
+
+function escRe(s){return String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+function norm(s){return String(s||'').toLowerCase().replace(/[""'']/g,"'").replace(/\s+/g,' ').trim();}
+function fold(s){return norm(s).replace(/[^a-z0-9.%\/\- ]+/g,' ');}
+
+function splitSentences(t){
+ return String(t||'').replace(/\r\n?/g,'\n')
+  .split(/\n+|(?<=[.!?])\s+/)
+  .map(s=>s.replace(/^[-*•\d.)\s]+/,'').trim())
+  .filter(s=>s.length>2);
+}
+
+function noteBody(note){
+ const t=String(note||'').replace(/\r\n?/g,'\n');
+ const cut=t.search(/^\s*(?:OPEN QUESTIONS|GAPS|E\/M WHY|CODES|ORDERS\/FOLLOW-UP SUMMARY|PATIENT INSTRUCTIONS|LETTER)\s*:/im);
+ return (cut>=0?t.slice(0,cut):t).trim();
+}
+
+function parseSections(note){
+ const body=noteBody(note);
+ const lines=body.split('\n');
+ const sections={};let cur=null,buf=[];
+ const flush=()=>{if(cur)sections[cur]=(sections[cur]||[]).concat(buf.join('\n').trim()).filter(Boolean);buf=[];};
+ const headRe=/^\s*([A-Za-z][A-Za-z0-9 /&-]{0,40})\s*:\s*(.*)$/;
+ lines.forEach(l=>{
+  const m=l.match(headRe);
+  if(m && m[1].length<42){
+   const raw=m[1].trim();
+   let key=null;
+   Object.keys(SOAP_ALIASES).forEach(k=>{if(SOAP_ALIASES[k].some(a=>new RegExp('^'+escRe(a)+'$','i').test(raw)))key=k;});
+   if(/assessment\s*(and|&|\/)\s*plan/i.test(raw)||/^a\s*\/\s*p$/i.test(raw))key='__MERGED_AP__';
+   if(key){flush();cur=key;if(m[2])buf.push(m[2]);return;}
+  }
+  if(cur)buf.push(l);else if(l.trim()){if(!sections.__preamble)sections.__preamble=[];sections.__preamble.push(l);}
+ });
+ flush();
+ return sections;
+}
+
+function sourceHas(source,phrase){
+ const s=fold(source),p=fold(phrase);
+ if(!p)return true;
+ if(s.includes(p))return true;
+ // loose: all significant tokens present nearby
+ const toks=p.split(/\s+/).filter(t=>t.length>2&&!/^(the|and|for|with|from|that|this|was|were|are|not)$/.test(t));
+ if(!toks.length)return s.includes(p);
+ return toks.every(t=>s.includes(t));
+}
+
+function findAll(re,text){
+ const out=[];const g=new RegExp(re.source,re.flags.includes('g')?re.flags:re.flags+'g');
+ let m;while((m=g.exec(text))){out.push({text:m[0],index:m.index});if(!m[0].length)g.lastIndex++;}
+ return out;
+}
+
+// Extract clinical key tokens from a sentence for support checking.
+function keyTokens(sentence){
+ const t=fold(sentence);
+ const out=new Set();
+ // numbers / doses / measurements / dates
+ (t.match(/\b\d+(?:\.\d+)?(?:\s*(?:mg|mcg|g|kg|lb|lbs|cm|mm|mmhg|%|mg\/dl|mmol|units?|iu|meq|ml|cc|tabs?|puffs?|bid|tid|qid|qd|qhs|prn))?\b/gi)||[]).forEach(x=>out.add(fold(x)));
+ // drug-ish and diagnosis-ish tokens (length>=4, not stopwords)
+ t.split(/\s+/).forEach(w=>{
+  if(w.length<4)return;
+  if(/^(with|from|that|this|were|have|been|into|over|under|about|after|before|during|there|their|which|while|when|what|your|they|them|then|than|also|only|just|very|more|most|such|into|onto|upon|each|both|some|other|these|those|would|could|should|shall|will|does|did|doing|being|because|through)$/.test(w))return;
+  if(/^(subjective|objective|assessment|plan|patient|history|follow|return|continue|discussed|reviewed|section|additional|documented|supplied|provided)$/.test(w))return;
+  out.add(w);
+ });
+ return [...out];
+}
+
+function unsupportedInSentence(sentence,source){
+ const src=fold(source);
+ const missing=[];
+ keyTokens(sentence).forEach(tok=>{
+  if(!src.includes(tok)){
+   // allow plural/singular soft match
+   const stem=tok.replace(/s$/,'');
+   if(stem.length>=4&&src.includes(stem))return;
+   if(tok.endsWith('ing')&&src.includes(tok.slice(0,-3)))return;
+   missing.push(tok);
+  }
+ });
+ return missing;
+}
+
+function extractNumbers(text){
+ const out=[];
+ const re=/\b\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}\b|\b\d+(?:\.\d+)?\s*(?:mg|mcg|g|kg|lb|lbs|cm|mm|mmhg|%|mg\/dl|mmol\/l|units?|iu|meq|ml|cc)?\b/gi;
+ findAll(re,String(text||'')).forEach(h=>{
+  const v=fold(h.text);
+  if(/^\d{1,2}$/.test(v))return; // bare small ints often list numbers
+  out.push(h.text.trim());
+ });
+ return out;
+}
+
+function checkBanned(note,source,bannedList){
+ const list=(bannedList&&bannedList.length)?bannedList:DEFAULT_BANNED;
+ const body=noteBody(note);const flags=[];
+ list.forEach(phrase=>{
+  const re=new RegExp('\\b'+escRe(phrase).replace(/\\ /g,'\\s+')+'\\b','gi');
+  findAll(re,body).forEach(h=>{
+   if(!sourceHas(source,h.text)){
+    flags.push({id:'ban-'+flags.length,type:'banned_phrase',severity:'fail',
+     label:'Banned / filler wording not in your source',
+     detail:'"'+h.text+'" does not appear in the source dictation/records.',
+     span:h.text,index:h.index,category:'banned'});
+   }
+  });
+ });
+ return flags;
+}
+
+function checkInterpretive(note,source,words){
+ const list=(words&&words.length)?words:DEFAULT_INTERPRETIVE;
+ const body=noteBody(note);const flags=[];const seen=new Set();
+ list.forEach(w=>{
+  const re=new RegExp('\\b'+escRe(w).replace(/\\ /g,'\\s+')+'\\b','gi');
+  findAll(re,body).forEach(h=>{
+   const key=fold(h.text);
+   if(seen.has(key))return;seen.add(key);
+   if(!sourceHas(source,h.text)){
+    flags.push({id:'int-'+flags.length,type:'interpretive',severity:'fail',
+     label:'Interpretation / severity word not in your source',
+     detail:'"'+h.text+'" was not in the source. Remove it unless you said it.',
+     span:h.text,index:h.index,category:'interpretive'});
+   }
+  });
+ });
+ return flags;
+}
+
+function checkUnsupportedSentences(note,source){
+ const body=noteBody(note);const flags=[];
+ splitSentences(body).forEach((sent,i)=>{
+  if(FILLER_RE.test(sent))return; // covered by banned
+  if(/^\s*(?:subjective|objective|assessment|plan|attestation|open questions)\s*:?\s*$/i.test(sent))return;
+  if(/^\s*attestation\s*:/i.test(sent))return;
+  if(/outside records supplied/i.test(sent))return; // queue meta line
+  const miss=unsupportedInSentence(sent,source);
+  // flag if a material share of key tokens is unsupported (or any number/dose is missing — handled separately)
+  const toks=keyTokens(sent);
+  if(!toks.length)return;
+  const ratio=miss.length/toks.length;
+  if(miss.length>=2&&ratio>=0.4){
+   flags.push({id:'uns-'+i,type:'unsupported_sentence',severity:'fail',
+    label:'Sentence not supported by your source',
+    detail:'Unsupported pieces: '+miss.slice(0,8).join(', ')+(miss.length>8?'…':''),
+    span:sent.slice(0,220),index:body.indexOf(sent),unsupported:miss,category:'unsupported'});
+  }
+ });
+ return flags;
+}
+
+function checkNumbers(note,source){
+ const src=fold(source);const flags=[];const seen=new Set();
+ extractNumbers(noteBody(note)).forEach((n,i)=>{
+  const f=fold(n);
+  if(seen.has(f))return;seen.add(f);
+  if(!src.includes(f)){
+   // try without unit
+   const bare=f.replace(/\s*(mg|mcg|g|kg|lb|lbs|cm|mm|mmhg|%|mg\/dl|mmol\/l|units?|iu|meq|ml|cc)\s*$/,'');
+   if(bare&&src.includes(bare)&&/\b(?:mg|cm|mm|%)\b/i.test(n)===false){
+    // still flag doses with wrong/missing unit context lightly — require full match for dose-like
+   }
+   if(!src.includes(bare)||/\d+\s*(?:mg|mcg|cm|mm|%)/i.test(n)){
+    if(!src.includes(f)&&!(bare.length>=1&&src.includes(bare)&&!/(?:mg|mcg|cm|mm)/i.test(n))){
+     flags.push({id:'num-'+i,type:'unsupported_number',severity:'fail',
+      label:'Number / dose / measurement / date not in your source',
+      detail:'"'+n+'" does not appear in the source.',
+      span:n,category:'number'});
+    }
+   }
+  }
+ });
+ return flags;
+}
+
+function checkEmptyFilled(note,source){
+ const secs=parseSections(note);const flags=[];
+ SOAP_SECTIONS.forEach(name=>{
+  const content=(secs[name]||[]).join('\n').trim();
+  if(!content)return;
+  if(FILLER_RE.test(content)){
+   const rest=fold(content.replace(FILLER_RE,' '));
+   if(!rest||rest.length<8||!sourceHas(source,rest)){
+    flags.push({id:'fill-'+name,type:'empty_filler',severity:'fail',
+     label:'Empty section filled with filler',
+     detail:name+' only contains filler (e.g. "not documented") and has no real content from your source. Omit the section instead.',
+     span:content.slice(0,160),category:'filler'});
+   }
+  }
+ });
+ // Extra invented headings
+ const body=noteBody(note);
+ findAll(EXTRA_HEADS,body).forEach((h,i)=>{
+  flags.push({id:'extra-'+i,type:'extra_heading',severity:'fail',
+   label:'Extra heading you did not supply',
+   detail:'"'+h.text.replace(/:$/,'').trim()+'" is not part of the fixed SOAP template and was not in your source.',
+   span:h.text.trim(),category:'extra'});
+ });
+ return flags;
+}
+
+function checkMergedAP(note){
+ const body=noteBody(note);const flags=[];
+ if(MERGED_AP.test(body)||parseSections(note).__MERGED_AP__){
+  flags.push({id:'merge-ap',type:'merged_ap',severity:'fail',
+   label:'Assessment and Plan are merged',
+   detail:'Keep Assessment and Plan as two separate sections.',
+   span:(body.match(MERGED_AP)||['Assessment and Plan'])[0],category:'structure'});
+ }
+ return flags;
+}
+
+function applyAttestation(note,verbatim,timeText){
+ let att=String(verbatim||'').trim();
+ if(!att)return {note:String(note||''),inserted:false};
+ const time=String(timeText||'').trim()||'[time not entered]';
+ att=att.split(TIME_PLACEHOLDER).join(time);
+ // strip any LLM-written attestation first
+ let body=String(note||'').replace(/\r\n?/g,'\n');
+ body=body.replace(/^\s*Attestation\s*:.*$/im,'');
+ // place before OPEN QUESTIONS / after-note blocks if present
+ const cut=body.search(/^\s*(?:OPEN QUESTIONS|GAPS|E\/M WHY|CODES|ORDERS\/FOLLOW-UP SUMMARY|PATIENT INSTRUCTIONS|LETTER)\s*:/im);
+ const attLine='Attestation: '+att;
+ if(cut>=0)body=body.slice(0,cut).replace(/\s*$/,'\n\n')+attLine+'\n\n'+body.slice(cut).replace(/^\s*/,'');
+ else body=body.replace(/\s*$/,'\n\n')+attLine+'\n';
+ return {note:body,inserted:true,attestation:att};
+}
+
+function checkAttestation(note,savedVerbatim,timeText){
+ const flags=[];
+ const saved=String(savedVerbatim||'').trim();
+ if(!saved){
+  // if note has an attestation but none saved, flag alteration-by-LLM risk
+  if(/^\s*Attestation\s*:/im.test(note)){
+   flags.push({id:'att-unsaved',type:'attestation_altered',severity:'fail',
+    label:'Attestation present but no saved verbatim text',
+    detail:'Save your attestation under Settings. The app inserts it by code so the AI cannot rewrite it.',
+    span:'Attestation',category:'attestation'});
+  }
+  return flags;
+ }
+ const applied=applyAttestation('IGNORE',saved,timeText).attestation;
+ const m=String(note||'').match(/^\s*Attestation\s*:\s*(.+)$/im);
+ if(!m){
+  flags.push({id:'att-missing',type:'attestation_altered',severity:'fail',
+   label:'Saved attestation missing from note',
+   detail:'Your saved verbatim attestation is not in the note. Use "Insert my attestation" (code inserts it unchanged).',
+   span:applied.slice(0,120),category:'attestation'});
+  return flags;
+ }
+ const got=m[1].trim();
+ if(fold(got)!==fold(applied)){
+  flags.push({id:'att-altered',type:'attestation_altered',severity:'fail',
+   label:'Attestation altered vs your saved verbatim text',
+   detail:'The note\'s attestation does not match the text you saved. Replace it with the code-inserted version.',
+   span:got.slice(0,160),expected:applied,category:'attestation'});
+ }
+ return flags;
+}
+
+function highlightNote(note,flags){
+ // Returns HTML-ish plain markers: wrap flagged spans with [[N:...]] for UI to style.
+ let t=String(note||'');
+ // safer approach: return list of {index,length,n,flag} for UI
+ const marks=[];
+ flags.forEach((f,i)=>{
+  if(!f.span)return;
+  const idx=typeof f.index==='number'&&f.index>=0?f.index:t.indexOf(f.span);
+  if(idx<0)return;
+  marks.push({n:i+1,index:idx,length:f.span.length,flag:f});
+ });
+ marks.sort((a,b)=>a.index-b.index||b.length-a.length);
+ return marks;
+}
+
+function removeSpanFromNote(note,span){
+ if(!span)return String(note||'');
+ const t=String(note||'');
+ // remove sentence containing span if span is short; else remove exact span
+ const i=t.indexOf(span);
+ if(i<0){
+  // case-insensitive
+  const re=new RegExp(escRe(span),'i');
+  return t.replace(re,'').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n');
+ }
+ // If span looks like a whole sentence or line, drop the line/sentence
+ if(span.length>40||/\n/.test(span)||/[.!?]$/.test(span)){
+  const before=t.lastIndexOf('\n',i);
+  const after=t.indexOf('\n',i+span.length);
+  const start=before<0?0:before+1;
+  const end=after<0?t.length:after;
+  const line=t.slice(start,end);
+  if(line.includes(span))return (t.slice(0,start)+t.slice(end).replace(/^\n/,'')).replace(/\n{3,}/g,'\n\n');
+ }
+ return (t.slice(0,i)+t.slice(i+span.length)).replace(/[ \t]{2,}/g,' ').replace(/\n{3,}/g,'\n\n');
+}
+
+function summarize(flags,kept){
+ kept=kept||{};
+ const open=flags.filter(f=>!kept[f.id]);
+ const by={};open.forEach(f=>{by[f.type]=(by[f.type]||0)+1;});
+ const pass=!open.length;
+ const lines=[];
+ if(pass)lines.push('PASS — no unsupported wording flagged. (This does not prove the note is clinically accurate.)');
+ else{
+  lines.push('FAIL — '+open.length+' item'+(open.length>1?'s':'')+' to remove or confirm:');
+  open.forEach((f,i)=>lines.push((i+1)+'. ['+f.category+'] '+f.label+': '+(f.span||'').slice(0,100)));
+ }
+ return {pass,openCount:open.length,keptCount:flags.length-open.length,byType:by,lines,plain:lines.join('\n')};
+}
+
+// Main entry: check(note, source, opt)
+// opt: {banned, interpretive, attestation, timeText, kept:{id:true}}
+function stripAttestationLines(note){
+ return String(note||'').replace(/^\s*Attestation\s*:.*$/gim,'');
+}
+function check(note,source,opt){
+ opt=opt||{};
+ const src=String(source||'');
+ const n=String(note||'');
+ const clinical=stripAttestationLines(n);
+ let flags=[].concat(
+  checkBanned(clinical,src,opt.banned),
+  checkInterpretive(clinical,src,opt.interpretive),
+  checkUnsupportedSentences(clinical,src),
+  checkNumbers(clinical,src),
+  checkEmptyFilled(clinical,src),
+  checkMergedAP(clinical),
+  checkAttestation(n,opt.attestation,opt.timeText)
+ );
+ // de-dupe overlapping identical spans+types
+ const seen=new Set();
+ flags=flags.filter(f=>{const k=f.type+'|'+fold(f.span||f.label);if(seen.has(k))return false;seen.add(k);return true;});
+ flags.forEach((f,i)=>{if(!f.id)f.id='f'+i;f.n=i+1;});
+ const summary=summarize(flags,opt.kept);
+ const marks=highlightNote(n,flags);
+ return {flags,summary,marks,pass:summary.pass,canCopy:summary.pass};
+}
+
+function loadBanned(raw){
+ if(Array.isArray(raw))return raw.map(s=>String(s).trim()).filter(Boolean);
+ return String(raw||'').split(/\n+/).map(s=>s.trim()).filter(Boolean);
+}
+
+return {
+ SOAP_SECTIONS,SOAP_ALIASES,SOAP_TEMPLATE_DISPLAY,DEFAULT_BANNED,DEFAULT_INTERPRETIVE,
+ DEFAULT_ATTESTATION,TIME_PLACEHOLDER,HARDENED_PROMPT,HARDENED_FORMAT_RULE,
+ check,checkBanned,checkInterpretive,checkUnsupportedSentences,checkNumbers,
+ checkEmptyFilled,checkMergedAP,checkAttestation,applyAttestation,removeSpanFromNote,stripAttestationLines,
+ parseSections,noteBody,summarize,loadBanned,sourceHas,keyTokens,extractNumbers,splitSentences
+};
+})();
+if(typeof module!=='undefined')module.exports=DeIDFidelity;
+/*FIDELITY-END*/
+</script>
 <script>
 /*QUEUE-START*/
 // Review queue (Phase 1 batch). Pure logic, no DOM: card storage, the drafting request (Appendix A),
@@ -1532,9 +2020,16 @@ E/M WHY: table Problems | Data | Risk with evidence and level; suggested level b
 Office: 99202-99205 / 99212-99215. Inpatient: 99221-99223, 99231-99233, 99238/99239 (Medicare: no consult codes). Nursing facility: 99304-99306 / 99307-99310.
 CODES: ICD-10-CM and CPT suggestions with one-line reasons, marked "coder to confirm".
 ORDERS/FOLLOW-UP SUMMARY for staff. PATIENT INSTRUCTIONS at 6th-grade level. LETTER to PCP/referrer (brief).`;
-const ATTESTATION='Drafted with AI assistance from my dictation and records I supplied. I personally performed the services described, reviewed and edited this note, and attest that it is accurate and complete. — D. Bhaskar Rao, MD';
+const ATTESTATION_LEGACY='Drafted with AI assistance from my dictation and records I supplied. I personally performed the services described, reviewed and edited this note, and attest that it is accurate and complete. — D. Bhaskar Rao, MD';
+// Verbatim attestation is inserted by CODE (never by the LLM). {{TIME}} is a typed placeholder filled from the review screen.
+const ATTESTATION=(typeof DeIDFidelity!=='undefined'&&DeIDFidelity.DEFAULT_ATTESTATION)||'I personally performed the services described, reviewed and edited this note, and attest that it is accurate and complete. Time spent on the date of the encounter: {{TIME}}. — D. Bhaskar Rao, MD';
+const HARDENED_PROMPT=(typeof DeIDFidelity!=='undefined'&&DeIDFidelity.HARDENED_PROMPT)||APPENDIX_A;
+const APPENDIX_A_LEGACY=APPENDIX_A;
+const DEFAULT_INSTRUCTIONS=HARDENED_PROMPT;
 // Section headings the app relies on (added after Appendix A; layout only, no new clinical rules).
-const FORMAT_RULE='\n\nLayout for this app: start each note section on its own line as "Heading: text" using these headings: Visit type and reason, HPI, ROS, PMH, Medications, Allergies, Exam, Data reviewed, Assessment and plan, Medication changes, Follow-up, MDM summary, Time, Attestation. Then put each after-note section on its own line starting exactly with GAPS:, E/M WHY:, CODES:, ORDERS/FOLLOW-UP SUMMARY:, PATIENT INSTRUCTIONS:, LETTER:. In E/M WHY include one line "Suggested level: 99xxx".';
+const FORMAT_RULE_LEGACY='\n\nLayout for this app: start each note section on its own line as "Heading: text" using these headings: Visit type and reason, HPI, ROS, PMH, Medications, Allergies, Exam, Data reviewed, Assessment and plan, Medication changes, Follow-up, MDM summary, Time, Attestation. Then put each after-note section on its own line starting exactly with GAPS:, E/M WHY:, CODES:, ORDERS/FOLLOW-UP SUMMARY:, PATIENT INSTRUCTIONS:, LETTER:. In E/M WHY include one line "Suggested level: 99xxx".';
+const FORMAT_RULE=(typeof DeIDFidelity!=='undefined'&&DeIDFidelity.HARDENED_FORMAT_RULE)||'\n\nLayout for this app: use Subjective, Objective, Assessment, Plan as separate headings. Never merge Assessment and Plan. Omit empty sections. Never write Not documented / not supplied. Do not write Attestation (app inserts it). After the note, OPEN QUESTIONS: if needed.';
+const SOAP_TEMPLATE=(typeof DeIDFidelity!=='undefined'&&DeIDFidelity.SOAP_TEMPLATE_DISPLAY)||'Subjective:\n\nObjective:\n\nAssessment:\n\nPlan:';
 // The physician's own signature is not patient information: hide it from the leak detector only (text is sent unchanged).
 const SIGNER=[/D\.\s*Bhaskar\s+Rao(?:,\s*MD)?/g,/Bhaskar\s+Rao/g];
 const maskSigner=s=>SIGNER.reduce((t,re)=>t.replace(re,'[SIGNER]'),String(s||''));
@@ -1646,11 +2141,16 @@ function parseReply(text){const t=String(text||'').replace(/\r\n?/g,'\n');const 
  out.gaps=String(out.gaps||'').split('\n').map(l=>l.replace(/^\s*(?:[-*•]|\d+[.)])\s*/,'').trim()).filter(Boolean).slice(0,6);
  const sl=out.note.match(/^\s*Suggested (?:level|code)\s*:\s*(99\d{3})\b/im)||out.emWhy.match(/suggested (?:level|code)[^\n]*?\b(99\d{3})\b/i)||out.emWhy.match(/\b(99(?:2[0-3]\d|30[4-9]|310))\b/)||out.codes.match(/\b(99(?:2[0-3]\d|30[4-9]|310))\b/);out.aiCode=sl?sl[1]:'';
  return out;}
-const HEADS=['Visit type(?: and reason)?(?:/referral)?','Reason(?: for (?:visit|referral))?','HPI','ROS','PMH','Past medical history','Medications','Allergies','Exam','Physical exam','Data reviewed','Assessment and plan','Assessment & plan','A/P','Medication changes','Follow-up','MDM summary','MDM','Time','Attestation'];
+const HEADS=['Visit type(?: and reason)?(?:/referral)?','Reason(?: for (?:visit|referral))?','HPI','ROS','PMH','Past medical history','Medications','Allergies','Exam','Physical exam','Data reviewed','Subjective','Objective','Assessment','Plan','Assessment and plan','Assessment & plan','A/P','Medication changes','Follow-up','MDM summary','MDM','Time','Attestation','S','O','A','P'];
 const HEAD_RE=new RegExp('^\\s*(?:'+HEADS.join('|')+')\\b[^:\\n]{0,40}:','im');
-const REQUIRED=['HPI','ROS','PMH','Medications','Allergies','Exam','Data reviewed','Assessment and plan','Medication changes','Follow-up','MDM','Attestation'];
+const REQUIRED_LEGACY=['HPI','ROS','PMH','Medications','Allergies','Exam','Data reviewed','Assessment and plan','Medication changes','Follow-up','MDM','Attestation'];
+const REQUIRED=['Subjective','Objective','Assessment','Plan']; // fixed SOAP; omit empty — never auto-fill with Not documented
 function hasHead(note,h){return new RegExp('^\\s*'+h.replace(/[/]/g,'\\/')+'\\b[^:\\n]{0,40}:','im').test(noteBody(note)+(/^\s*Attestation:/im.test(note)?'\nAttestation:':''));}
-function missingSections(note){return REQUIRED.filter(h=>!hasHead(note,h)&&!(h==='Assessment and plan'&&/^\s*(?:A\/P|Assessment & plan)\b/im.test(note))&&!(h==='Exam'&&/^\s*Physical exam\b/im.test(note))&&!(h==='PMH'&&/^\s*Past medical history\b/im.test(note)));}
+function missingSections(note){/* v1.8: empty SOAP sections are omitted on purpose; only flag merged A/P or total absence of any SOAP head */
+ const body=noteBody(note);if(!body.trim())return ['Subjective','Objective','Assessment','Plan'];
+ if(/Assessment\s*(?:and|&|\/)\s*Plan/i.test(body)||/^\s*A\s*\/\s*P\b/im.test(body))return ['Assessment','Plan'];
+ return [];}
+function missingSectionsLegacy(note){return REQUIRED_LEGACY.filter(h=>!hasHead(note,h)&&!(h==='Assessment and plan'&&/^\s*(?:A\/P|Assessment & plan)\b/im.test(note))&&!(h==='Exam'&&/^\s*Physical exam\b/im.test(note))&&!(h==='PMH'&&/^\s*Past medical history\b/im.test(note)));}
 function notDocumented(note){const out=[];noteBody(note).split('\n').forEach(l=>{const m=l.match(/^\s*([A-Za-z][A-Za-z /&-]{1,40}):\s*Not documented\.?\s*$/i);if(m)out.push(m[1].trim());});return out;}
 function addNotDocumented(note,missing){if(!missing||!missing.length)return note;const t=String(note||'');const m=t.match(/^\s*Attestation:/im);const add=missing.filter(h=>h!=='Attestation').map(h=>h+': Not documented.').join('\n');
  let r=m?t.slice(0,m.index).replace(/\s*$/,'\n')+add+'\n'+t.slice(m.index).replace(/^\s*/,''):t.replace(/\s*$/,'\n')+add;
@@ -1676,7 +2176,7 @@ function buildQueueInput(card){const parts=[caseHeader(card),'DICTATION (de-iden
 const REASONING=/^(?:o\d|gpt-5|gpt-6|gpt-7)/i;
 // q={key,base,api('responses'|'chat'),model,effort,instructions}. opt={detect,alwaysRemove,signal}. Throws GuardError before building anything if identifiers remain.
 function buildQueueRequest(q,card,opt){q=q||{};opt=opt||{};const input=buildQueueInput(card);if(!String(card.dDict||'').trim()&&!String(card.dReport||'').trim())throw new Error('Nothing to draft: add a dictation first.');
- const instr=(String(q.instructions||'').trim()||APPENDIX_A);
+ const instr=(String(q.instructions||'').trim()||DEFAULT_INSTRUCTIONS);
  const parts=[{where:'Case label',text:card.label||''},{where:'Dictation',text:card.dDict||''},{where:'Outside report',text:card.dReport||''},{where:'Your answers',text:answersText(card)},{where:'Instructions',text:maskSigner(instr)}];
  const issues=TX.checkOutgoing(parts,{detect:opt.detect,alwaysRemove:opt.alwaysRemove});if(issues.length)throw TX_GuardError(issues);
  const base=queueBase(q);const isOpenAI=base===OPENAI;const key=String(q.key||'').trim();if(isOpenAI&&!key)throw new Error('Add your OpenAI API key in Settings > Review queue, or turn on Demo mode.');
@@ -1690,8 +2190,20 @@ async function readErr(res){let t='';try{t=await res.text();}catch(e){}let m=t;t
 // Scrubs the reply (identifiers -> tokens), keeps the physician's own signature.
 function scrubReply(text,opt){opt=opt||{};const keep=[];let t=String(text||'').replace(/D\.\s*Bhaskar\s+Rao(?:,\s*MD)?|Bhaskar\s+Rao/g,m=>{keep.push(m);return '[SIGNER'+(keep.length-1)+']';});
  const r=TX.scrubResponse(t,{detect:opt.detect,alwaysRemove:opt.alwaysRemove});return {text:r.text.replace(/\[SIGNER(\d+)\]/g,(m,i)=>keep[+i]||m),flagged:r.flagged};}
+function insertVerbatimAttestation(note,verbatim,timeText){
+ if(typeof DeIDFidelity!=='undefined'&&DeIDFidelity.applyAttestation)return DeIDFidelity.applyAttestation(note,verbatim,timeText).note;
+ const att=String(verbatim||ATTESTATION).split('{{TIME}}').join(String(timeText||'').trim()||'[time not entered]');
+ let body=String(note||'').replace(/^\s*Attestation\s*:.*$/im,'');
+ const cut=body.search(/^\s*(?:OPEN QUESTIONS|GAPS|E\/M WHY|CODES|ORDERS\/FOLLOW-UP SUMMARY|PATIENT INSTRUCTIONS|LETTER)\s*:/im);
+ const line='Attestation: '+att;
+ if(cut>=0)return body.slice(0,cut).replace(/\s*$/,'\n\n')+line+'\n\n'+body.slice(cut).replace(/^\s*/,'');
+ return body.replace(/\s*$/,'\n\n')+line+'\n';
+}
 async function draftCard(q,card,opt,fetchImpl){opt=opt||{};const r=buildQueueRequest(q,card,opt);const res=await (fetchImpl||fetch)(r.url,r.init);if(!res.ok)throw new Error(await readErr(res));
- const raw=TX.cleanNote(TX.toPlain(TX.parseNoteResponse(await res.json())));if(!raw)throw new Error('The AI returned an empty draft.');const s=scrubReply(raw,opt);return {text:s.text,flagged:s.flagged};}
+ let raw=TX.cleanNote(TX.toPlain(TX.parseNoteResponse(await res.json())));if(!raw)throw new Error('The AI returned an empty draft.');
+ // Strip any LLM-written attestation; UI inserts the physician's saved verbatim text by code.
+ raw=raw.replace(/^\s*Attestation\s*:.*$/im,'');
+ const s=scrubReply(raw,opt);return {text:s.text,flagged:s.flagged};}
 
 // ---------- demo mode: local mock drafts (no network). Reorganises only what was dictated. ----------
 const ICD=[[/rest pain/i,'I70.22- PAD of native arteries with rest pain (side to confirm)'],[/\b(?:ulcer|wound|gangrene)\b/i,'I70.23-/I70.24- PAD with ulceration (site, side and depth to confirm)'],
@@ -1717,17 +2229,21 @@ function mockReply(card,opt){opt=opt||{};const d=String(card.dDict||'').replace(
  const pmh=reportSection(rep,/^(?:PMH|Past medical history)$/i),meds=reportSection(rep,/^(?:Medications|Meds)$/i),alg=reportSection(rep,/^Allergies$/i),ros=lineVal(d,/\bROS\s*:\s*([^\n]+)/i);
  const medCh=plan.filter(s=>RX_CHANGE.test(s)),fu=plan.filter(isFollow);
  const quals=findQualifiers(d,d).map(q=>q.phrase);const status=quals.find(q=>/goal|stable|progress|worsen|severe|threat|uncontrolled|exacerbation/.test(q));
- const reason=(hpi[0]||ss.find(x=>!isVisit(x))||'Not documented.').replace(/\.$/,'');
- const N=[];N.push('Visit type and reason: '+SETTINGS[card.setting]+', '+VISITS[card.visit].toLowerCase()+' patient. '+reason+'.');
- N.push('HPI: '+(hpi.slice(reason===hpi[0]?1:0).join(' ')||(hpi[0]?hpi[0]:'Not documented.')));
- N.push('ROS: '+(ros||'Not documented.'));N.push('PMH: '+(pmh?pmh+' (per outside record)':'Not documented.'));N.push('Medications: '+(meds?meds+' (per outside record)':'Not documented.'));
- N.push('Allergies: '+(alg?alg+' (per outside record)':'Not documented.'));N.push('Exam: '+(exam.join(' ')||'Not documented.'));
- N.push('Data reviewed: '+(data.join(' ')||'Not documented.')+(rep.trim()?' Outside records supplied (de-identified).':''));
- N.push('Assessment and plan:\n1. '+reason+'. Status: '+(status||'Not documented (confirm).')+' Evidence: '+(exam.concat(data).slice(0,2).join(' ')||'Not documented.')+' Decision: '+(plan.join(' ')||'Not documented.'));
- N.push('Medication changes: '+(medCh.join(' ')||'None dictated.'));N.push('Follow-up: '+(fu.join(' ')||'Not documented.'));
- N.push('MDM summary: Problems '+PLV[em.problems.level].toLowerCase()+', data '+DLV[em.data.level].toLowerCase()+', risk '+PLV[em.risk.level].toLowerCase()+'; overall '+em.mdmLabel.toLowerCase()+' complexity (2 of 3).');
- if(em.minutes)N.push('Time: '+em.minutes+' minutes total on the date of the visit (as dictated), excluding separately billed services.');
- N.push('Attestation: '+ATTESTATION);
+ const reason=(hpi[0]||ss.find(x=>!isVisit(x))||'').replace(/\.$/,'');
+ // v1.8 SOAP mock: only include sections with content; never "Not documented"; A and P separate; no attestation (code inserts).
+ const N=[];
+ const subj=[];if(reason)subj.push(SETTINGS[card.setting]+', '+VISITS[card.visit].toLowerCase()+' patient. '+reason+'.');
+ hpi.slice(reason&&hpi[0]===reason+'.'||hpi[0]===reason?1:0).forEach(s=>subj.push(s));if(ros)subj.push('ROS: '+ros);
+ if(subj.length)N.push('Subjective:\n'+subj.join(' '));
+ const obj=[];if(exam.length)obj.push(exam.join(' '));if(data.length)obj.push(data.join(' '));if(rep.trim())obj.push(rep.trim().split('\n').filter(l=>l&&!/^(OUTSIDE|WOUND|Patient:|Name:|DOB:|MRN:|Seen |Allergies:)/i.test(l)).slice(0,4).join(' '));
+ if(pmh)obj.push('PMH (per outside record): '+pmh);if(meds)obj.push('Medications (per outside record): '+meds);if(alg)obj.push('Allergies (per outside record): '+alg);
+ if(obj.length)N.push('Objective:\n'+obj.join(' '));
+ const assess=[];if(reason)assess.push(reason+(status?'. '+status+'.':'.'));
+ if(exam.concat(data).length)assess.push('Evidence: '+exam.concat(data).slice(0,2).join(' '));
+ if(assess.length)N.push('Assessment:\n'+assess.join(' '));
+ const pln=[];plan.forEach(s=>pln.push(s));medCh.forEach(s=>pln.push(s));fu.forEach(s=>pln.push(s));
+ if(pln.length)N.push('Plan:\n'+pln.map((s,i)=>(i+1)+'. '+s).join('\n'));
+ // No Attestation here — inserted by code from the physician's saved verbatim text.
  const G=[];if(!exam.length)G.push('Exam: what did you find (pulses, Doppler signals, wound size and depth)?');
  quals.forEach(q=>G.push('Confirm: "'+q+'"'));if(/\b(?:duplex|abi)\b/i.test(d)&&!OWN_READ.test(d))G.push('Duplex/ABI: an outside study, or your own read that you bill?');
  if(em.risk.level<3)G.push('Risk decision: any prescription change, procedure decision or admission?');if(!em.minutes)G.push('Time: bill by MDM, or enter total minutes?');
@@ -1738,11 +2254,17 @@ function mockReply(card,opt){opt=opt||{};const d=String(card.dDict||'').replace(
   em.minutes?'Level by time: '+em.minutes+' minutes supports '+(em.timeCode||'no time-based code')+'.':'Level by time: no minutes dictated.',
   'What would change the level: '+(levelDrops(d,{setting:card.setting,visit:card.visit},quals).join(' ')||'Nothing dictated would lower it.')+' (No wording is suggested to raise a level.)'];
  const C=[fam.label.split(',')[0]+' E/M '+ai+' (coder to confirm)'].concat(ICD.filter(([re])=>re.test(all)).map(([,c])=>c+' (coder to confirm)'));
- const O=plan.length?plan.map(s=>'- '+s):['- Not documented.'];
+ const O=plan.length?plan.map(s=>'- '+s):[];
  const P=['- Follow the plan your doctor explained today.'].concat(medCh.map(s=>'- Medicine change: '+s)).concat(fu.map(s=>'- Next visit: '+s)).concat(['- Call the office if your leg or foot gets worse, colder, or has a new sore.']);
- const L='Dear referring clinician,\nThank you for asking me to see your patient (case '+(card.label||'')+'). '+reason+'. Plan: '+(plan.join(' ')||'Not documented.')+'\nSincerely,\nD. Bhaskar Rao, MD';
- return [N.join('\n'),'GAPS:\n'+G.slice(0,6).map((g,i)=>(i+1)+'. '+g).join('\n'),'E/M WHY:\n'+W.join('\n'),'CODES:\n'+C.map(c=>'- '+c).join('\n'),'ORDERS/FOLLOW-UP SUMMARY:\n'+O.join('\n'),
-  'PATIENT INSTRUCTIONS:\n'+P.join('\n'),'LETTER:\n'+L].join('\n\n');}
+ const L='Dear referring clinician,\nThank you for asking me to see your patient (case '+(card.label||'')+'). '+(reason||'See note')+'. Plan: '+(plan.join(' ')||'(see note)')+'\nSincerely,\nD. Bhaskar Rao, MD';
+ const blocks=[N.join('\n\n')];
+ if(G.length)blocks.push('OPEN QUESTIONS:\n'+G.slice(0,6).map((g,i)=>(i+1)+'. '+g).join('\n'));
+ blocks.push('GAPS:\n'+G.slice(0,6).map((g,i)=>(i+1)+'. '+g).join('\n'));
+ blocks.push('E/M WHY:\n'+W.join('\n'));blocks.push('CODES:\n'+C.map(c=>'- '+c).join('\n'));
+ if(O.length)blocks.push('ORDERS/FOLLOW-UP SUMMARY:\n'+O.join('\n'));
+ blocks.push('PATIENT INSTRUCTIONS:\n'+P.join('\n'));blocks.push('LETTER:\n'+L);
+ return blocks.join('\n\n');
+}
 // FAKE demo patients (worked examples A-D from the plan + one nursing-home case). Every name, date and number is invented.
 const DEMO=[
  {label:'A-03',setting:'office',visit:'new',dict:'New patient, office. Referred by Dr. Quentin Fakename for a right great toe wound for three weeks. Rest pain at night, progressive, threat to limb. Exam: right femoral pulse 2+, popliteal and pedal pulses absent, monophasic Doppler signals DP and PT, 1 cm dry wound at the tip of the right great toe, no sign of infection. I reviewed the referral notes, the BMP and the A1c. I personally reviewed the outside CTA images: right SFA occlusion with tibial disease. Spoke with Dr. Fakename about the plan. Plan: elective major revascularization, right leg angiogram with possible intervention; risk factors diabetes, CKD 3 and current smoking. Start atorvastatin 80 mg. Follow up after the angiogram.',
@@ -1788,10 +2310,12 @@ function heard(card){const d=String(card.dict||'')+' '+String(card.report||'');c
 function stats(cards,audit,now){now=+(now||Date.now());const done=(audit||[]).length,left=(cards||[]).length;const secs=(audit||[]).map(a=>a.reviewSec||0).filter(x=>x>0);
  const avg=secs.length?Math.round(secs.reduce((a,b)=>a+b,0)/secs.length):0;const per=avg||TARGET_SEC;return {done,total:done+left,left,avgSec:avg,targetSec:TARGET_SEC,onTarget:!avg||avg<=TARGET_SEC,finishAt:left?now+left*per*1000:now};}
 const mmss=s=>{s=Math.max(0,Math.round(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
-return {KEY,VER,TARGET_SEC,OPENAI,SETTINGS,VISITS,APPENDIX_A,ATTESTATION,FAM,LV,DLV,PLV,family,codeRank,emCheck,levelAdvice,levelDrops,findQualifiers,removeQualifier,noteBody,
- parseReply,missingSections,notDocumented,addNotDocumented,extractSections,COPY,queueBase,buildQueueInput,buildQueueRequest,scrubReply,draftCard,mockReply,DEMO,
+return {KEY,VER,TARGET_SEC,OPENAI,SETTINGS,VISITS,APPENDIX_A,APPENDIX_A_LEGACY,HARDENED_PROMPT,DEFAULT_INSTRUCTIONS,SOAP_TEMPLATE,FORMAT_RULE,FORMAT_RULE_LEGACY,ATTESTATION,ATTESTATION_LEGACY,FAM,LV,DLV,PLV,family,codeRank,emCheck,levelAdvice,levelDrops,findQualifiers,removeQualifier,noteBody,
+ parseReply,missingSections,missingSectionsLegacy,notDocumented,addNotDocumented,extractSections,COPY,queueBase,buildQueueInput,buildQueueRequest,scrubReply,draftCard,insertVerbatimAttestation,mockReply,DEMO,
  newCard,pickCard,packQueue,unpackQueue,finishCard,validLabel,cardStatus,STATUS_LABEL,heard,stats,mmss,sentences,maskSigner};
 })(typeof DeIDTx!=='undefined'?DeIDTx:require('./tx.js'));
+// Node tests: ensure fidelity is loaded for HARDENED_PROMPT defaults when queue is required alone.
+if(typeof DeIDFidelity==='undefined'&&typeof require!=='undefined'){try{global.DeIDFidelity=require('./fidelity.js');}catch(e){}}
 if(typeof module!=='undefined')module.exports=DeIDQueue;
 /*QUEUE-END*/
 </script>
@@ -2074,7 +2598,7 @@ $('complete').onclick=()=>gate('Save to OneDrive',finIO[0],finIO[1],()=>saveNote
 // ---- settings panel ----
 function syncBackend(){document.querySelectorAll('[data-b]').forEach(d=>d.classList.toggle('hide',d.dataset.b!==cfg.backend));document.querySelectorAll('[data-np]').forEach(d=>d.classList.toggle('hide',d.dataset.np!==cfg.note.provider));}
 function fillSettings(){document.querySelectorAll('#settings [data-k]').forEach(el=>{const v=getK(el.dataset.k);if(el.type==='checkbox')el.checked=!!v;else el.value=v==null?'':v;});
- $('remember').checked=remember;$('autoclear').value=String(autoH);fillInstr();$('qinstr').value=qInstr();$('redir').textContent=/^https?:$/.test(location.protocol)?redirectUri():'(serve over http://localhost or https to use OneDrive export)';syncBackend();}
+ $('remember').checked=remember;$('autoclear').value=String(autoH);fillInstr();$('qinstr').value=qInstr();if(typeof qFillFidSettings==='function')qFillFidSettings();$('redir').textContent=/^https?:$/.test(location.protocol)?redirectUri():'(serve over http://localhost or https to use OneDrive export)';syncBackend();}
 document.querySelectorAll('#settings [data-k]').forEach(el=>{const h=()=>{let v=el.type==='checkbox'?el.checked:el.value;if(el.type==='number')v=+v||25;setK(el.dataset.k,v);syncBackend();persist();};el.addEventListener('input',h);el.addEventListener('change',h);});
 $('remember').onchange=()=>{if($('remember').checked&&!confirm('Save API keys and PIN in plain text in this browser? Only do this on your own, encrypted, password-locked device.')){$('remember').checked=false;return;}remember=$('remember').checked;persist();};
 function openSettings(){fillSettings();$('settings').classList.add('on');}
@@ -2229,7 +2753,18 @@ syncSession();restoreDraft();syncSession();
 const QS={cards:[],audit:[],demo:false,view:'list',cur:null,filter:'all',revStart:0,timer:null,qsavedAt:0,busy:new Set()};
 const QK=DeIDQueue.KEY;const qmsg=(t,ms)=>{$('qmsg').textContent=t;if(ms)setTimeout(()=>{if($('qmsg').textContent===t)$('qmsg').textContent='';},ms);};
 const qcfg=()=>{const q=cfg.queue||{};return {key:String(q.key||'').trim()||String((cfg.openai||{}).key||'').trim(),base:q.base,api:q.api,model:q.model,effort:q.effort,instructions:qInstr()};};
-const qInstr=()=>{const v=prefs.instr.queue;return v==null?DeIDQueue.APPENDIX_A:v;};
+const qInstr=()=>{const v=prefs.instr.queue;return v==null?DeIDQueue.DEFAULT_INSTRUCTIONS:v;};
+// ---------- fidelity (v1.8) ----------
+const FID_KEY='deidpad.fidelity.v1';
+function qFidStore(){try{return JSON.parse(localStorage.getItem(FID_KEY)||'{}')||{};}catch(e){return {};}}
+function qFidSave(o){try{localStorage.setItem(FID_KEY,JSON.stringify(o));}catch(e){}}
+function qAttestText(){const s=qFidStore();return s.attestation==null?DeIDFidelity.DEFAULT_ATTESTATION:String(s.attestation);}
+function qBannedList(){const s=qFidStore();return s.banned==null?DeIDFidelity.DEFAULT_BANNED.slice():DeIDFidelity.loadBanned(s.banned);}
+function qSourceOf(c){return [c.dDict||'',c.dReport||'',c.dict||'',c.report||''].join('\n');}
+function qFidOpt(c){c=c||{};return {banned:qBannedList(),attestation:qAttestText(),timeText:($('qfidtime')&&$('qfidtime').value)||(c.fidTime||''),kept:(c.fidKept||{})};}
+function qRunFidelity(c){if(!c||!c.note||typeof DeIDFidelity==='undefined')return null;return DeIDFidelity.check(c.note,qSourceOf(c),qFidOpt(c));}
+function qFidOpenCount(c){const r=qRunFidelity(c);return r?r.summary.openCount:0;}
+
 const qCard=id=>QS.cards.find(c=>c.id===id);
 const el=(tag,props,kids)=>{const e=document.createElement(tag);if(props)Object.keys(props).forEach(k=>{if(props[k]==null||props[k]===false)return;if(k==='text')e.textContent=props[k];else if(k==='cls')e.className=props[k];else if(k.startsWith('on'))e[k]=props[k];else e.setAttribute(k,props[k]);});
  (kids||[]).forEach(k=>k!=null&&e.appendChild(typeof k==='string'?document.createTextNode(k):k));return e;};
@@ -2314,7 +2849,7 @@ async function qDraft(c){if(!c||QS.busy.has(c.id))return;const mock=QS.demo||c.m
  try{let text,flagged=[];
   if(mock){await new Promise(r=>setTimeout(r,500));text=DeIDQueue.mockReply(c,{overcall:c.overcall});const s=DeIDQueue.scrubReply(text,{detect:DeID.detect,alwaysRemove:alwaysList()});text=s.text;flagged=s.flagged;}
   else{const r=await DeIDQueue.draftCard(qcfg(),c,{detect:DeID.detect,alwaysRemove:alwaysList(),signal:ctl.signal});text=r.text;flagged=r.flagged;}
-  const p=DeIDQueue.parseReply(text);Object.assign(c,{reply:text,note:p.note,gaps:p.gaps,answers:{},quals:{},approved:false,copied:false,levelAck:false,finalCode:'',draftedAt:Date.now(),status:'drafted'});
+  const p=DeIDQueue.parseReply(text);let note=p.note;try{note=DeIDQueue.insertVerbatimAttestation(note,qAttestText(),($('qfidtime')&&$('qfidtime').value)||'');}catch(e){}Object.assign(c,{reply:text,note:note,gaps:p.gaps,answers:{},quals:{},approved:false,copied:false,levelAck:false,finalCode:'',draftedAt:Date.now(),status:'drafted',fidKept:{},fidTime:($('qfidtime')&&$('qfidtime').value)||''});
   if(flagged.length)c.err='';if(flagged.length)qmsg('Removed from the AI reply (now tokens): '+flagged.map(i=>i.category).join(', '),5000);}
  catch(e){c.status='new';c.err=e.name==='GuardError'?'NOT SENT. Identifiers were found in what would be sent. Edit the dictation, then draft again:\n'+DeIDTx.formatIssues(e.issues):e.name==='AbortError'?'Stopped.':('Draft failed: '+e.message+(e instanceof TypeError?' (network or blocked endpoint)':''));}
  finally{QS.busy.delete(c.id);if(c.status==='drafting')c.status='new';qSave();qRender();}}
@@ -2331,8 +2866,9 @@ function qRenderRev(){const c=qCard(QS.cur);if(!c){qShow('list');return;}const i
  else if(!c.note){w.className='qinfo';w.textContent=qStatus(c)==='drafting'?'Drafting…':'No draft yet. Tap Redraft.';}
  if(document.activeElement!==$('qnote'))$('qnote').value=c.note||'';$('qnote').readOnly=!!c.approved;
  const miss=c.note?DeIDQueue.missingSections(c.note):[],nd=c.note?DeIDQueue.notDocumented(c.note):[];const ndel=$('qnd');ndel.textContent='';
- if(nd.length)ndel.appendChild(el('div',{cls:'qnd',text:'Not documented: '+nd.join(', ')+'. Fill these in only from what you actually did, or leave them.'}));
- if(miss.length)ndel.appendChild(el('div',{cls:'qerr'},['Missing sections: '+miss.join(', ')+' ',el('button',{type:'button',text:'Add "Not documented." lines',onclick:()=>{c.note=DeIDQueue.addNotDocumented(c.note,miss);$('qnote').value=c.note;qSave();qRenderRev();}})]));
+ if(nd.length)ndel.appendChild(el('div',{cls:'qerr',text:'Filler found ("Not documented" for: '+nd.join(', ')+'). Remove these lines — empty sections should be omitted, not filled with "not documented".'}));
+ if(miss.length&&miss.includes('Assessment')&&miss.includes('Plan'))ndel.appendChild(el('div',{cls:'qerr',text:'Assessment and Plan look merged or missing. Keep them as SEPARATE headings. Do not write filler.'}));
+ qRenderFidelity(c);
  const p=i.p||{};$('qcodes').textContent=p.codes||'–';$('qorders').textContent=p.orders||'–';$('qinstrout').textContent=p.instructions||'–';$('qletter').textContent=p.letter||'–';$('qemwhy').textContent=p.emWhy||'–';
  $('qsent').textContent=DeIDQueue.buildQueueInput(c);
  // gaps
@@ -2359,8 +2895,9 @@ function qRenderRev(){const c=qCard(QS.cur);if(!c){qShow('list');return;}const i
  // final level + approve
  const sel=$('qfinal');const fam=DeIDQueue.FAM[L.family];const opts=fam.codes.filter((x,ix,a)=>a.indexOf(x)===ix);if(i.aiCode&&!opts.includes(i.aiCode))opts.push(i.aiCode);
  const want=c.finalCode||qSuggested(c,i);sel.textContent='';opts.forEach(o=>sel.appendChild(el('option',{value:o,text:o+(o===L.code?' (dictation supports)':'')+(o===i.aiCode?' (AI draft)':'')})));sel.value=want;sel.disabled=!!c.approved;
- const blockers=[];if(!c.note)blockers.push('no draft');if(i.openQuals)blockers.push(i.openQuals+' qualifier'+(i.openQuals>1?'s':'')+' to confirm or remove');if(miss.length)blockers.push('missing sections');
- $('qapprove').disabled=!!blockers.length||!!c.approved;$('qapprovewhy').textContent=c.approved?'Approved. Copy it into the chart.':blockers.length?'Before you can approve: '+blockers.join(', ')+'.':i.gapsOpen?i.gapsOpen+' question(s) unanswered: fine if the note already says "Not documented."':'';
+ const fidOpen=qFidOpenCount(c);const blockers=[];if(!c.note)blockers.push('no draft');if(i.openQuals)blockers.push(i.openQuals+' qualifier'+(i.openQuals>1?'s':'')+' to confirm or remove');if(nd.length)blockers.push('"Not documented" filler to remove');if(miss.length&&miss.includes('Assessment')&&miss.includes('Plan'))blockers.push('Assessment/Plan merged or missing');if(fidOpen)blockers.push(fidOpen+' fidelity flag'+(fidOpen>1?'s':'')+' to Remove or Keep');
+ $('qapprove').disabled=!!blockers.length||!!c.approved;$('qapprovewhy').textContent=c.approved?'Approved. Copy it into the chart after fidelity is clear.':blockers.length?'Before you can approve: '+blockers.join(', ')+'.':i.gapsOpen?i.gapsOpen+' open question(s) outside the note — optional.':'';
+ const copyBlocked=!!fidOpen||!c.approved;$('qcopyfinish').disabled=copyBlocked;if($('qfidblock'))$('qfidblock').textContent=fidOpen?'Copy note & finish is blocked until every fidelity item is Removed or you tap Keep — I confirm this.':'';
  $('qpaste').classList.toggle('hide',!c.approved);$('qredraft').disabled=!!c.approved;$('qunapprove').classList.toggle('hide',!c.approved);
  $('qcopyfinish').textContent=cfg.queue.wipeOnCopy!==false?'Copy note & finish (wipes this patient)':'Copy note';$('qfinish').classList.toggle('hide',cfg.queue.wipeOnCopy!==false&&!c.copied);
  const nx=qNextId(c.id);$('qnextp').textContent=nx?'Next: '+qCard(nx).label:'Back to queue';qTick();}
@@ -2396,6 +2933,52 @@ $('qinstr').addEventListener('input',()=>{prefs.instr.queue=$('qinstr').value;pe
 $('qinstrreset').onclick=()=>{delete prefs.instr.queue;$('qinstr').value=qInstr();persistPrefs();};
 document.addEventListener('visibilitychange',()=>{if(QS.view!=='rev'||!$('qv').classList.contains('on'))return;if(document.visibilityState==='hidden'){qStopTimer();qSave();}else qStartTimer();});
 window.addEventListener('pagehide',()=>{qStopTimer();qSave();});
+
+
+function qRenderFidelity(c){
+ const box=$('qfid'),list=$('qfidlist'),sum=$('qfidsum');if(!box||!list||!sum)return;
+ if(!c||!c.note){box.classList.remove('pass');sum.textContent='No draft yet.';list.textContent='';return;}
+ const r=qRunFidelity(c);if(!r){sum.textContent='Fidelity module not loaded.';return;}
+ box.classList.toggle('pass',!!r.pass);sum.textContent=r.summary.plain;
+ list.textContent='';
+ r.flags.forEach((f,ix)=>{
+  const kept=!!(c.fidKept||{})[f.id];
+  const row=el('div',{cls:'qfiditem'+(kept?' kept':'')},[
+   el('span',{cls:'qfidn',text:String(f.n||ix+1)+'.'}),
+   el('span',{text:' ['+f.category+'] '+f.label+' — '}),
+   el('span',{cls:'qfidspan',text:(f.span||'').slice(0,180)}),
+   el('div',{cls:'small',text:f.detail||''}),
+   el('div',{cls:'qfidbtns'}, kept
+    ?[el('span',{cls:'small',text:'Kept — you confirmed this.'}),el('button',{type:'button',text:'Undo keep',disabled:c.approved?'':null,onclick:()=>{c.fidKept=c.fidKept||{};delete c.fidKept[f.id];qSave();qRenderRev();}})]
+    :[el('button',{type:'button',cls:'ok',text:'Remove',disabled:c.approved?'':null,onclick:()=>{
+        c.note=DeIDFidelity.removeSpanFromNote(c.note,f.span||'');
+        // special: merged A/P — try split hint
+        if(f.type==='merged_ap'){c.note=c.note.replace(/^\s*Assessment\s*(?:and|&|\/)\s*Plan\s*:/im,'Assessment:\n\nPlan:');}
+        if(f.type==='attestation_altered'){c.note=DeIDQueue.insertVerbatimAttestation(c.note,qAttestText(),($('qfidtime')&&$('qfidtime').value)||c.fidTime||'');}
+        $('qnote').value=c.note;c.fidKept=c.fidKept||{};delete c.fidKept[f.id];qSave();qRenderRev();
+      }}),
+      el('button',{type:'button',text:'Keep — I confirm this',disabled:c.approved?'':null,onclick:()=>{c.fidKept=c.fidKept||{};c.fidKept[f.id]=true;qSave();qRenderRev();}})]
+   )
+  ]);
+  list.appendChild(row);
+ });
+}
+if($('qfidrun'))$('qfidrun').onclick=()=>{const c=qCard(QS.cur);if(c)qRenderRev();};
+if($('qattins'))$('qattins').onclick=()=>{const c=qCard(QS.cur);if(!c||c.approved)return;const time=($('qfidtime')&&$('qfidtime').value)||'';c.fidTime=time;c.note=DeIDQueue.insertVerbatimAttestation(c.note||$('qnote').value,qAttestText(),time);$('qnote').value=c.note;qSave();qRenderRev();qmsg('Attestation inserted by code (unchanged).',2500);};
+if($('qfidtime'))$('qfidtime').addEventListener('input',()=>{const c=qCard(QS.cur);if(c){c.fidTime=$('qfidtime').value;qSaveSoon();}});
+
+// Settings: hardened / legacy / attestation / banned
+function qFillFidSettings(){
+ if($('qinstr'))$('qinstr').value=qInstr();
+ if($('qattest'))$('qattest').value=qAttestText();
+ if($('qbanned'))$('qbanned').value=qBannedList().join('\n');
+}
+if($('qinstrreset'))$('qinstrreset').onclick=()=>{delete prefs.instr.queue;$('qinstr').value=DeIDQueue.DEFAULT_INSTRUCTIONS;persistPrefs();qmsg('Reset to hardened SOAP prompt.',2500);};
+if($('qinstrlegacy'))$('qinstrlegacy').onclick=()=>{prefs.instr.queue=DeIDQueue.APPENDIX_A_LEGACY;$('qinstr').value=prefs.instr.queue;persistPrefs();qmsg('Loaded old Appendix A (writes Not documented — not recommended).',4000);};
+if($('qattest'))$('qattest').addEventListener('input',()=>{const s=qFidStore();s.attestation=$('qattest').value;qFidSave(s);});
+if($('qattestreset'))$('qattestreset').onclick=()=>{const s=qFidStore();delete s.attestation;qFidSave(s);$('qattest').value=qAttestText();};
+if($('qbanned'))$('qbanned').addEventListener('input',()=>{const s=qFidStore();s.banned=$('qbanned').value;qFidSave(s);});
+if($('qbannedreset'))$('qbannedreset').onclick=()=>{const s=qFidStore();delete s.banned;qFidSave(s);$('qbanned').value=qBannedList().join('\n');};
 // ---- Send to LLM UI (v1.6.0). Everything happens inside the user's tap: check -> copy -> open (iOS needs the gesture).
 const EX={s:DeIDExport.unpack((()=>{try{return localStorage.getItem(DeIDExport.KEY);}catch(e){return null;}})()),pending:null};
 const exSave=()=>{try{localStorage.setItem(DeIDExport.KEY,DeIDExport.pack(EX.s));}catch(e){}};
@@ -2456,7 +3039,8 @@ $('llmpsave').onclick=()=>{const t=$('llmptext').value.trim();if(!t){alert('Inst
  EX.s=DeIDExport.clean(EX.s);$('llmpedit').classList.add('hide');exSave();exFill();exRenderSet();};
 $('llmpcancel').onclick=()=>$('llmpedit').classList.add('hide');
 $('llmaddprompt').onclick=()=>exEditPrompt(null);
-$('llmaddappa').onclick=()=>{$('llmpname').value='Appendix A note';$('llmptext').value=qInstr();$('llmpedit').dataset.id='';$('llmpedit').classList.remove('hide');};
+$('llmaddhard').onclick=()=>{$('llmpname').value='Hardened SOAP (v1.8)';$('llmptext').value=DeIDFidelity.HARDENED_PROMPT;$('llmpedit').dataset.id='';$('llmpedit').classList.remove('hide');};
+$('llmaddappa').onclick=()=>{$('llmpname').value='Old Appendix A';$('llmptext').value=DeIDQueue.APPENDIX_A_LEGACY;$('llmpedit').dataset.id='';$('llmpedit').classList.remove('hide');};
 $('llmprefill').onchange=()=>{EX.s.prefill=$('llmprefill').checked;exSave();};
 $('llmconfirm').onchange=()=>{EX.s.confirmEach=$('llmconfirm').checked;exSave();};
 $('llmresetack').onclick=()=>{EX.s.ack=false;exSave();exToast('The safety notice will show again before the next send');};

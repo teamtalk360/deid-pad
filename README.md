@@ -1,5 +1,26 @@
 # DeID Pad (offline clinical text de-identifier)
 
+## Version 1.8.0: SOAP fidelity check (November 2026)
+
+LLM drafts (ChatGPT projects and the Review queue) were inventing wording: "not documented / not supplied", interpretations, billing/MDM language, merged Assessment+Plan, and rewritten attestation. That is a legal and licensure risk.
+
+**What 1.8.0 adds (deterministic — no second LLM rewrite):**
+
+1. **Hardened SOAP prompt** (new default in Review queue Settings; old Appendix A still available). Copy only facts; omit empty sections; never write that something is missing; Assessment and Plan always separate; no Clinical problems / Medication burden extras; no billing/CPT/MDM unless dictated; ask questions only under OPEN QUESTIONS outside the note.
+2. **Fixed SOAP template** used by the queue and by "Send to my AI" (+ Add hardened SOAP instruction).
+3. **Verbatim attestation** saved on this device and **inserted by app code** with a typed `{{TIME}}` placeholder — never passed through the LLM.
+4. **Fidelity check** in the Review queue: banned phrases (editable), unsupported sentences, unsupported numbers/doses/dates, empty filler, merged A/P, altered attestation. Plain-language pass/fail. **Copy note & finish is blocked** until each flag is Removed or you tap **Keep — I confirm this**. Never auto-rewrites with an LLM.
+5. Docs: `/workspace/note-fidelity/Hardened_Project_Prompt.md` and a 1-page PDF to paste into a ChatGPT project. Tip: **new chat per patient**.
+
+**Honesty:** the checker catches unsupported content against your source text. It **cannot guarantee clinical accuracy**. You remain responsible for every word that enters the chart.
+
+**Tests:** `node test/fidelity.test.js` — ≥60 FAKE notes (no real PHI); report detection recall. Also included in `npm test`.
+
+Live: https://teamtalk360.github.io/deid-pad/
+
+---
+
+
 > **IMPORTANT:** This is a **rule-based** (regex/heuristic) tool. It is **NOT a certified de-identification** and it does not guarantee HIPAA Safe Harbor compliance. **Read every output before you use or share it.** It will miss some identifiers (unusual names, free-text locations, rare ID formats). It can also over-redact clinical text.
 
 ## Version 1.7.0: rebuilt detection engine (November 2026)
