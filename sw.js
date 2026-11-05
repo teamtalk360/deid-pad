@@ -2,7 +2,7 @@
 // Never caches or sees pasted text, scanned images, audio or API traffic (the text draft lives in the page's localStorage, not here) (only same-origin GETs of app files are handled).
 // No skipWaiting(): a new version installs in the background and takes over on the next launch, so an open
 // session (recording, text present) is never reloaded or swapped mid-use.
-const C='deid-pad-v8-llm',SHELL=['./','index.html','manifest.webmanifest','icon-180.png','icon-192.png','icon-512.png','auth-redirect.html','auth-redirect.js','vendor/msal-browser.min.js','vendor/msal-redirect-bridge.min.js'];
+const C='deid-pad-v9-deid17',SHELL=['./','index.html','manifest.webmanifest','icon-180.png','icon-192.png','icon-512.png','auth-redirect.html','auth-redirect.js','vendor/msal-browser.min.js','vendor/msal-redirect-bridge.min.js'];
 const OCRF=['tesseract.min.js','worker.min.js','tesseract-core-lstm.wasm.js','tesseract-core-simd-lstm.wasm.js','eng.traineddata.gz'].map(f=>'vendor/tesseract/'+f);
 const OCR=/\/vendor\/tesseract\/[\w.\-]+$/;
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(SHELL).then(()=>Promise.all(OCRF.map(f=>c.add(f).catch(()=>{}))))))});
